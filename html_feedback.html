@@ -1314,127 +1314,7 @@ applyFilters();
     }
   ];
 
-  // Parse MongoDB messages format
-  function parseMessages(messagesString) {
-    try {
-      // Check if messages is already an object/array
-      if (typeof messagesString === 'object') {
-        return messagesString.map(msg => ({
-          role: msg.role || 'unknown',
-          message: typeof msg.content === 'object' ?
-                  JSON.stringify(msg.content) :
-                  msg.content || 'No content'
-        }));
-      }
-
-      // If it's not a string, return default message
-      if (typeof messagesString !== 'string') {
-        console.warn('Messages is not a string:', messagesString);
-        return [
-          { role: 'user', message: 'Message parsing error' },
-          { role: 'assistant', message: 'Unable to parse messages' }
-        ];
-      }
-
-      // Replace = with : to make it valid JSON-like
-      let jsonLikeString = messagesString.replace(/([a-zA-Z]+)=/g, '"$1":');
-
-      // Replace single quotes with double quotes
-      jsonLikeString = jsonLikeString.replace(/'/g, '"');
-
-      // Try to parse as JSON first
-      try {
-        const parsedJson = JSON.parse(jsonLikeString);
-        return parsedJson.map(msg => ({
-          role: msg.role || 'unknown',
-          message: typeof msg.content === 'object' ?
-                  JSON.stringify(msg.content) :
-                  msg.content || 'No content'
-        }));
-      } catch (jsonError) {
-        console.warn('Failed to parse as JSON, trying eval:', jsonError);
-      }
-
-      // Try eval approach as fallback
-      try {
-        const parsedArray = eval(jsonLikeString);
-
-        if (Array.isArray(parsedArray)) {
-          return parsedArray.map(msg => ({
-            role: msg.role || 'unknown',
-            message: typeof msg.content === 'object' ?
-                    msg.content.reduced_user_message || JSON.stringify(msg.content) :
-                    msg.content || 'No content'
-          }));
-        } else {
-          throw new Error('Eval did not return an array');
-        }
-      } catch (evalError) {
-        console.warn('Eval parsing failed:', evalError);
-      }
-
-      // Fallback parsing logic for more resilience
-      try {
-        const matches = messagesString.match(/\{role=(.*?), content=(.*?)\}/g);
-        if (matches) {
-          return matches.map(match => {
-            const roleMatch = match.match(/role=(.*?),/);
-            const contentMatch = match.match(/content=(.*?)(\}|$)/);
-
-            return {
-              role: roleMatch ? roleMatch[1].trim() : 'unknown',
-              message: contentMatch ?
-                      contentMatch[1].replace(/^\{|\}$/g, '').trim() :
-                      'Error parsing message'
-            };
-          });
-        }
-      } catch (e) {
-        console.error("Fallback parsing also failed:", e);
-      }
-
-      // Last resort: split by commas and make a best guess
-      try {
-        if (messagesString.includes('role') && messagesString.includes('content')) {
-          const parts = messagesString.split(/[{}]/g).filter(Boolean);
-          const messages = [];
-
-          for (const part of parts) {
-            if (part.includes('role') && part.includes('content')) {
-              const roleMatch = part.match(/role\s*=\s*(.*?)[,}]/);
-              const contentMatch = part.match(/content\s*=\s*(.*?)[,}]/);
-
-              messages.push({
-                role: roleMatch ? roleMatch[1].trim() : 'unknown',
-                message: contentMatch ? contentMatch[1].trim() : 'Error parsing message'
-              });
-            }
-          }
-
-          if (messages.length > 0) {
-            return messages;
-          }
-        }
-      } catch (e) {
-        console.error("Last resort parsing failed:", e);
-      }
-
-      // Return a default message if all parsing fails
-      console.error("All parsing methods failed for:", messagesString);
-      return [
-        { role: 'user', message: 'Error parsing message' },
-        { role: 'assistant', message: 'Error parsing message' }
-      ];
-    } catch (error) {
-      console.error("Critical error parsing messages:", error);
-      return [
-        { role: 'user', message: 'Error parsing message' },
-        { role: 'assistant', message: 'Error parsing message' }
-      ];
-    }
-  }
-
-  // Convert MongoDB data to app format
+  // Fix 1: Optimized MongoDB data conversion to app format (removes originalData duplication)
   function convertMongoDataToAppFormat(mongoData) {
     if (!mongoData || !Array.isArray(mongoData)) {
       console.error("Invalid MongoDB data:", mongoData);
@@ -1476,8 +1356,8 @@ applyFilters();
             conversation: parsedMessages,
             timestamp: item.timestamp || '',
             type: item.type || 'Unknown',
-            userName: item.userName || '',
-            originalData: item
+            userName: item.userName || ''
+            // Removed: originalData: item - This was causing memory duplication
           };
         } catch (itemError) {
           console.error("Error converting item:", itemError, item);
@@ -1487,6 +1367,123 @@ applyFilters();
     } catch (error) {
       console.error("Error converting MongoDB data:", error);
       return [];
+    }
+  }
+
+  // Memory-efficient message parsing without eval() and multiple try/catch blocks
+  function parseMessages(messagesString) {
+    // Handle non-string input
+    if (typeof messagesString !== 'string') {
+      // If it's already an object/array, process it directly
+      if (typeof messagesString === 'object' && messagesString !== null) {
+        if (Array.isArray(messagesString)) {
+          return messagesString.map(msg => ({
+            role: msg.role || 'unknown',
+            message: typeof msg.content === 'object' ?
+                    JSON.stringify(msg.content) :
+                    msg.content || 'No content'
+          }));
+        }
+
+        // If single object, convert to array
+        return [{
+          role: messagesString.role || 'unknown',
+          message: typeof messagesString.content === 'object' ?
+                  JSON.stringify(messagesString.content) :
+                  messagesString.content || 'No content'
+        }];
+      }
+
+      // Return default for non-string non-object
+      console.warn('Messages is not a string or object:', messagesString);
+      return [
+        { role: 'user', message: 'Message parsing error' },
+        { role: 'assistant', message: 'Unable to parse messages' }
+      ];
+    }
+
+    try {
+      // Clean the string to make it more JSON-like
+      let cleanedString = messagesString
+              .replace(/([a-zA-Z]+)=/g, '"$1":')  // Convert property=value to "property":value
+              .replace(/'/g, '"')                  // Replace single quotes with double quotes
+              .replace(/\"\{/g, '{')              // Fix any malformed quotes before brackets
+              .replace(/\}\"/g, '}');             // Fix any malformed quotes after brackets
+
+      // Try to parse as JSON
+      try {
+        const parsed = JSON.parse(cleanedString);
+        if (Array.isArray(parsed)) {
+          return parsed.map(msg => ({
+            role: msg.role || 'unknown',
+            message: typeof msg.content === 'object' ?
+                    (msg.content.reduced_user_message || JSON.stringify(msg.content)) :
+                    msg.content || 'No content'
+          }));
+        }
+      } catch (jsonError) {
+        // Continue to regex approach if JSON parsing fails
+      }
+
+      // Use regex to extract content - covers most common formats
+      const regex = /\{(?:['"]?role['"]?[:=]\s*['"]?(.*?)['"]?[,}]).*?(?:['"]?content['"]?[:=]\s*(.*?)(?=\s*[,}]|$))/g;
+      const matches = [];
+      let match;
+
+      while ((match = regex.exec(messagesString)) !== null) {
+        const role = match[1]?.trim() || 'unknown';
+        let content = match[2];
+
+        // Clean up content
+        if (content) {
+          // Remove surrounding quotes if present
+          content = content.replace(/^['"]|['"]$/g, '');
+
+          // Handle object content - simplified approach
+          if (content.startsWith('{') && content.endsWith('}')) {
+            try {
+              const contentObj = JSON.parse(content.replace(/'/g, '"'));
+              content = contentObj.reduced_user_message || JSON.stringify(contentObj);
+            } catch (e) {
+              // Keep as is if parsing fails
+            }
+          }
+        }
+
+        matches.push({
+          role: role,
+          message: content || 'No content'
+        });
+      }
+
+      if (matches.length > 0) {
+        return matches;
+      }
+
+      // Last resort simple format detection
+      if (messagesString.includes('role') && messagesString.includes('content')) {
+        const items = messagesString.split('},').map(part => part.trim() + (part.endsWith('}') ? '' : '}'));
+
+        return items.map(item => {
+          const roleMatch = item.match(/role['":\s=]+(['"]?)(.*?)\1[,}]/i);
+          const contentMatch = item.match(/content['":\s=]+(['"]?)(.*?)\1[,}]/i);
+
+          return {
+            role: roleMatch ? roleMatch[2].trim() : 'unknown',
+            message: contentMatch ? contentMatch[2].trim() : 'No content'
+          };
+        });
+      }
+
+      // Return default for unparseable content
+      return [
+        { role: 'user', message: 'Error parsing message content' }
+      ];
+    } catch (error) {
+      console.error("Critical error parsing messages:", error);
+      return [
+        { role: 'user', message: 'Error parsing message' }
+      ];
     }
   }
 
@@ -2591,8 +2588,6 @@ applyFilters();
   connectToMongoDB();
 </script>
 <script src="feedback-system-fixes.js"></script>
-<script src="type-filter-fix.js"></script>
-<script src="pagination-fix.js"></script>
 <!-- Similar Conversations Feature -->
 <div id="similar-dialog-backdrop" class="dialog-backdrop hidden">
   <div id="similar-dialog" class="dialog">
