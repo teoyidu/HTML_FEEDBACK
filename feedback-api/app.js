@@ -398,36 +398,93 @@ app.patch('/api/conversations/:id/messages', async (req, res) => {
 });
 
 // New endpoint for searching similar conversations (if QDrant is available)
+// Enhanced similar-conversations endpoint with better error handling
+// Replace the existing endpoint in app.js with this implementation
+
+// New endpoint for searching similar conversations with improved error handling
 app.get('/api/similar-conversations', async (req, res) => {
     try {
         if (!db) await connectToMongo();
 
+        // Check if QDrant service is available
         if (!qdrantService || typeof qdrantService.searchSimilarConversations !== 'function') {
-            return res.status(501).json({ error: 'Similar search feature not available' });
+            return res.status(501).json({
+                error: 'Similar search feature not available',
+                details: 'The QDrant service is not properly initialized or the searchSimilarConversations function is missing'
+            });
         }
 
-        const { query, schema, type, limit } = req.query;
+        // Validate required parameters
+        const { query, schema, type, limit = 10, hidden } = req.query;
 
-        if (!query) {
-            return res.status(400).json({ error: 'Query parameter is required' });
+        if (!query || typeof query !== 'string' || query.trim().length === 0) {
+            return res.status(400).json({
+                error: 'Invalid query parameter',
+                details: 'The query parameter is required and must be a non-empty string'
+            });
         }
+
+        console.log(`Processing similar-conversations request: query="${query}", schema=${schema}, type=${type}, limit=${limit}, hidden=${hidden}`);
 
         // Build filters object
         const filters = {};
         if (schema) filters.schema = schema;
         if (type) filters.type = type;
+        if (hidden) filters.hidden = hidden === 'true';
 
-        // Search for similar conversations
-        const results = await qdrantService.searchSimilarConversations(
+        // Add request timeout
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Request timed out after 30 seconds')), 30000);
+        });
+
+        // Search for similar conversations with timeout
+        const searchPromise = qdrantService.searchSimilarConversations(
             query,
             filters,
             limit ? parseInt(limit) : 10
         );
 
+        // Race between search and timeout
+        const results = await Promise.race([searchPromise, timeoutPromise]);
+
+        // Log success
+        console.log(`Found ${results.length} similar conversations`);
+
+        // Return the results
         res.json(results);
     } catch (error) {
         console.error('Error searching similar conversations:', error);
-        res.status(500).json({ error: 'Failed to search similar conversations' });
+
+        // Specific error handling based on error type
+        if (error.message && error.message.includes('dimension')) {
+            return res.status(400).json({
+                error: 'Vector dimension error',
+                details: error.message,
+                suggestion: 'Run the init-qdrant.js script to rebuild the collection with the correct vector dimensions'
+            });
+        }
+
+        if (error.message && error.message.includes('timeout')) {
+            return res.status(504).json({
+                error: 'Request timeout',
+                details: 'The similar conversations search took too long to complete',
+                suggestion: 'Try a simpler query or add more specific filters'
+            });
+        }
+
+        if (error.name === 'AbortError') {
+            return res.status(504).json({
+                error: 'Request aborted',
+                details: 'The request to the vector database was aborted',
+                suggestion: 'Check if the QDrant service is responding and try again'
+            });
+        }
+
+        // Generic error response
+        res.status(500).json({
+            error: 'Failed to search similar conversations',
+            details: error.message || 'Unknown error'
+        });
     }
 });
 

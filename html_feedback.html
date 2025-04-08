@@ -1,182 +1,4 @@
-// Start the app - call at the end of the script
-function initializeApp() {
-// Connect to MongoDB
-connectToMongoDB();
-
-// Set up schema buttons
-initializeSchemaFilters();
-
-// Set up event listeners for other filters
-positiveFilter.addEventListener('click', () => {
-if (activeFeedbackFilter === 'positive') {
-activeFeedbackFilter = null;
-positiveFilter.classList.remove('active');
-} else {
-activeFeedbackFilter = 'positive';
-positiveFilter.classList.add('active');
-negativeFilter.classList.remove('active');
-}
-
-applyFilters();
-});
-
-negativeFilter.addEventListener('click', () => {
-if (activeFeedbackFilter === 'negative') {
-activeFeedbackFilter = null;
-negativeFilter.classList.remove('active');
-} else {
-activeFeedbackFilter = 'negative';
-negativeFilter.classList.add('active');
-positiveFilter.classList.remove('active');
-}
-
-applyFilters();
-});
-
-// Archived filter
-hiddenFilter.addEventListener('click', () => {
-showHidden = !showHidden;
-
-if (showHidden) {
-hiddenFilter.classList.add('active');
-hiddenFilter.innerHTML = `
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; margin-right: 4px;">
-  <rect width="20" height="5" x="2" y="3" rx="1"></rect>
-  <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path>
-  <path d="M10 12h4"></path>
-</svg>
-Hide Archived
-`;
-} else {
-hiddenFilter.classList.remove('active');
-hiddenFilter.innerHTML = `
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; margin-right: 4px;">
-  <rect width="20" height="5" x="2" y="3" rx="1"></rect>
-  <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path>
-  <path d="M10 12h4"></path>
-</svg>
-Show Archived
-`;
-}
-
-applyFilters();
-});
-
-// Search functionality
-searchInput.addEventListener('input', () => {
-searchQuery = searchInput.value.toLowerCase();
-applyFilters();
-});
-
-// Page size buttons
-pageSizeButtons.forEach(button => {
-button.addEventListener('click', () => {
-pageSizeButtons.forEach(btn => btn.classList.remove('active'));
-button.classList.add('active');
-pageSize = parseInt(button.dataset.size);
-// Reload current page with new page size
-loadPage(currentPage);
-});
-});
-
-// Dialog close
-dialogClose.addEventListener('click', closeDialog);
-dialogBackdrop.addEventListener('click', event => {
-if (event.target === dialogBackdrop) {
-closeDialog();
-}
-});
-
-// ESC key to close dialog
-document.addEventListener('keydown', event => {
-if (event.key === 'Escape' && !dialogBackdrop.classList.contains('hidden')) {
-closeDialog();
-}
-});
-
-// Edit messages button
-editMessagesBtn.addEventListener('click', () => {
-const item = data.find(item => item.id === currentItemId);
-if (item) {
-// Format messages into a readable format for editing
-const formattedMessages = item.conversation.map(msg =>
-`[${msg.role}] ${msg.message}`
-).join('\n\n');
-
-editMessageTextarea.value = formattedMessages;
-editMessageContainer.classList.remove('hidden');
-
-// Scroll to the textarea
-editMessageTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-// Focus the textarea
-setTimeout(() => {
-editMessageTextarea.focus();
-}, 300);
-}
-});
-
-// Cancel edit button
-cancelEditBtn.addEventListener('click', () => {
-editMessageContainer.classList.add('hidden');
-});
-
-// Save edit button setup is already in place
-}
-
-// Initialize the app when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initializeApp);    /* Notification styles */
-.notification {
-position: fixed;
-top: 1rem;
-right: 1rem;
-background-color: #1f2937;
-color: white;
-padding: 0.75rem 1rem;
-border-radius: 0.5rem;
-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-z-index: 100;
-transform: translateX(100%);
-opacity: 0;
-transition: all 0.3s ease;
-max-width: 24rem;
-}
-
-.notification.success {
-border-left: 4px solid #10b981;
-background-color: rgba(16, 185, 129, 0.2);
-color: #d1fae5;
-}
-
-.notification.error {
-border-left: 4px solid #ef4444;
-background-color: rgba(239, 68, 68, 0.2);
-color: #fee2e2;
-}
-
-.notification.info {
-border-left: 4px solid #3b82f6;
-background-color: rgba(59, 130, 246, 0.2);
-color: #dbeafe;
-}    // Filter by type
-function filterByType(type) {
-const button = document.querySelector(`.filter-btn[data-type="${type}"]`);
-
-if (activeTypeFilter === type) {
-activeTypeFilter = null;
-button.classList.remove('active');
-} else {
-// Remove active class from all type buttons
-document.querySelectorAll('.filter-btn[data-type]').forEach(btn => {
-btn.classList.remove('active');
-});
-
-activeTypeFilter = type;
-button.classList.add('active');
-}
-
-applyFilters();
-}<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
@@ -1054,7 +876,7 @@ applyFilters();
 </head>
 <body>
 <div class="container">
-  <h1>AI Chatbot Feedback System</h1>
+  <h1>Mürşit Feedback Sistemi</h1>
 
   <!-- MongoDB Connection Status -->
   <div class="connection-status">
@@ -1077,7 +899,7 @@ applyFilters();
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
       </svg>
-      <span>Schema Filters:</span>
+      <span>Şema Filtreleri:</span>
     </div>
     <div id="schema-filters" class="filter-buttons">
       <button data-schema="Mesai" class="filter-btn">Mesai</button>
@@ -1093,7 +915,7 @@ applyFilters();
         <path d="M12 20h9"></path>
         <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
       </svg>
-      <span>Type Filters:</span>
+      <span>Tip Filtreleri:</span>
     </div>
     <div id="type-filters" class="filter-buttons"></div>
   </div>
@@ -1101,7 +923,7 @@ applyFilters();
   <!-- Feedback Filter Buttons -->
   <div class="feedback-filters">
     <div class="filter-label">
-      <span>Feedback Filters:</span>
+      <span>Feedback Filtreleri:</span>
     </div>
     <button id="positive-filter" class="filter-btn">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; margin-right: 4px;">
@@ -1129,7 +951,7 @@ applyFilters();
 
   <!-- Page Size Selection -->
   <div class="page-size">
-    <span>Show:</span>
+    <span>Gösterilecek:</span>
     <button data-size="20" class="page-size-btn active">20</button>
     <button data-size="40" class="page-size-btn">40</button>
     <button data-size="100" class="page-size-btn">100</button>
@@ -2037,7 +1859,7 @@ applyFilters();
   // Render feedback items with animations
   function renderItems() {
     // Update results count
-    resultsCount.textContent = `Showing ${Math.min(pageSize, filteredData.length)} of ${filteredData.length} results`;
+    resultsCount.textContent = `${Math.min(pageSize, filteredData.length)} taneden ${filteredData.length} farklı sonuç gösteriliyor`;
 
     // Clear items container with animation
     const existingItems = feedbackItems.querySelectorAll('.feedback-item');
@@ -2120,19 +1942,19 @@ applyFilters();
                 </div>
               </div>
               <div class="feedback-actions">
-                <button class="action-btn positive${item.feedback === 'positive' ? ' active' : ''}" data-action="positive" data-id="${item.id}" title="Mark as helpful">
+                <button class="action-btn positive${item.feedback === 'positive' ? ' active' : ''}" data-action="positive" data-id="${item.id}" title="Pozitif olarak işaretle">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M7 10v12"></path>
                     <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path>
                   </svg>
                 </button>
-                <button class="action-btn negative${item.feedback === 'negative' ? ' active' : ''}" data-action="negative" data-id="${item.id}" title="Mark as unhelpful">
+                <button class="action-btn negative${item.feedback === 'negative' ? ' active' : ''}" data-action="negative" data-id="${item.id}" title="Negatif olarak işaretle">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M17 14V2"></path>
                     <path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z"></path>
                   </svg>
                 </button>
-                <button class="action-btn archive${item.hidden ? ' active' : ''}" data-action="hidden" data-id="${item.id}" title="${item.hidden ? 'Restore item' : 'Archive item'}">
+                <button class="action-btn archive${item.hidden ? ' active' : ''}" data-action="hidden" data-id="${item.id}" title="${item.hidden ? 'Restore item' : 'Arşivle'}">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect width="20" height="5" x="2" y="3" rx="1"></rect>
                     <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path>
@@ -2588,6 +2410,7 @@ applyFilters();
   connectToMongoDB();
 </script>
 <script src="feedback-system-fixes.js"></script>
+<script src="feedback-system-fixes-2.js"></script>
 <script src="similarity-fix.js"></script>
 <!-- Similar Conversations Feature -->
 <div id="similar-dialog-backdrop" class="dialog-backdrop hidden">
@@ -2922,3 +2745,4 @@ applyFilters();
 </style>
 </body>
 </html>
+
