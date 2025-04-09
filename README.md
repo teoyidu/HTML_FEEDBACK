@@ -151,9 +151,9 @@ The system supports advanced filtering through:
 Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 📞 Contact
-Your Name - your.email@example.com
+Your Name - myduman@newmind.ai
 
-Project Link: [https://github.com/your-org/ai-chatbot-feedback-system](https://github.com/your-org/ai-chatbot-feedback-system)
+Project Link: [https://github.com/teoyidu/HTML_FEEDBACK/]
 
 ---
 
