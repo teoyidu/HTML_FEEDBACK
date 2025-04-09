@@ -181,6 +181,7 @@
 
     .feedback-item {
       position: relative;
+      display: flex;
       border-radius: 0.5rem;
       background-color: #1f2937;
       overflow: hidden;
@@ -188,89 +189,30 @@
       transition: all 0.3s ease;
     }
 
-    .feedback-item-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      border-bottom: 1px solid #374151;
-    }
-
-    .feedback-metadata {
+    /* Schema buttons on the left */
+    .schema-buttons {
       display: flex;
       flex-direction: column;
-    }
-
-    .user-info {
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: #f3f4f6;
-    }
-
-    .date-info {
-      font-size: 0.75rem;
-      color: #9ca3af;
-    }
-
-    .feedback-actions {
-      display: flex;
+      padding: 1rem;
+      background-color: #1f2937;
+      border-right: 1px solid #374151;
+      min-width: 120px;
+      justify-content: center;
+      align-items: center;
       gap: 0.5rem;
-    }
-
-    .action-btn {
-      padding: 0.375rem;
-      border-radius: 9999px;
-      background-color: transparent;
-      border: none;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .action-btn:hover {
-      background-color: #374151;
-    }
-
-    .action-btn.positive {
-      color: #10b981;
-    }
-
-    .action-btn.positive.active {
-      background-color: rgba(16, 185, 129, 0.2);
-    }
-
-    .action-btn.negative {
-      color: #ef4444;
-    }
-
-    .action-btn.negative.active {
-      background-color: rgba(239, 68, 68, 0.2);
-    }
-
-    .action-btn.hidden {
-      color: #9ca3af;
-    }
-
-    .action-btn.hidden.active {
-      background-color: rgba(124, 58, 237, 0.2);
-      color: #a78bfa;
-    }
-
-    /* Schema Selection */
-    .schema-selection {
-      display: flex;
-      gap: 0.5rem;
-      margin: 0.5rem 1rem;
     }
 
     .schema-btn {
-      padding: 0.25rem 0.75rem;
-      border-radius: 0.25rem;
-      font-size: 0.875rem;
+      display: block;
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
       background-color: #1f2937;
       color: #d1d5db;
       border: 1px solid #374151;
       cursor: pointer;
       transition: all 0.2s ease;
+      text-align: center;
     }
 
     .schema-btn:hover {
@@ -283,51 +225,217 @@
       border-color: #2563eb;
     }
 
-    /* Tab Styles */
-    .feedback-header {
+    /* Content buttons in the middle */
+    .feedback-content {
+      flex: 1;
       display: flex;
-      align-items: center;
-      background-color: #1f2937;
-      border-bottom: 1px solid #374151;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 1rem;
     }
 
-    .tab-btn {
-      flex: 1;
+    /* User info at top */
+    .feedback-user-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #9ca3af;
+      border-bottom: 1px solid #374151;
+      padding-bottom: 0.5rem;
+    }
+
+    .user-name {
+      font-weight: 500;
+    }
+
+    .datetime {
+      font-style: italic;
+    }
+
+    /* Conversation and action buttons */
+    .feedback-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .conversation-btn {
+      width: 70%;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
       padding: 1rem;
-      background-color: #1f2937;
-      color: #f3f4f6;
+      background-color: #374151;
       border: none;
-      text-align: center;
+      border-radius: 0.5rem;
+      color: white;
       font-size: 1rem;
+      text-align: left;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      min-height: 60px;
+    }
+
+    .conversation-btn:hover {
+      background-color: #4b5563;
+    }
+
+    .small-buttons {
+      display: flex;
+      gap: 0.5rem;
+      width: 70%;
+    }
+
+    .suggestion-btn, .cypher-btn {
+      flex: 1;
+      padding: 0.5rem;
+      background-color: #374151;
+      border: none;
+      border-radius: 0.5rem;
+      color: white;
+      font-size: 0.875rem;
       cursor: pointer;
       transition: background-color 0.2s;
     }
 
-    .tab-btn:hover {
-      background-color: #374151;
+    .suggestion-btn:hover, .cypher-btn:hover {
+      background-color: #4b5563;
     }
 
-    .tab-btn.active {
-      background-color: #2563eb;
+    /* Feedback actions on the right */
+    .feedback-actions {
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      background-color: #1f2937;
+      border-left: 1px solid #374151;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .action-btn {
+      padding: 0.5rem;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+    }
+
+    .action-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .action-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .action-btn.positive {
+      background-color: #10b981; /* Green */
       color: white;
     }
 
-    .feedback-content {
+    .action-btn.positive:hover {
+      background-color: #059669; /* Brighter green */
+    }
+
+    .action-btn.archive {
+      background-color: #f59e0b; /* Yellow */
+      color: white;
+    }
+
+    .action-btn.archive:hover {
+      background-color: #d97706; /* Brighter yellow */
+    }
+
+    .action-btn.negative {
+      background-color: #ef4444; /* Red */
+      color: white;
+    }
+
+    .action-btn.negative:hover {
+      background-color: #dc2626; /* Brighter red */
+    }
+
+    /* Modal styles for content popup */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .modal-backdrop.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
       background-color: #1f2937;
+      border-radius: 0.5rem;
+      width: 90%;
+      max-width: 900px;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-backdrop.active .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 1rem;
-      min-height: 200px;
+      border-bottom: 1px solid #374151;
+    }
+
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      cursor: pointer;
+      padding: 0.5rem;
+    }
+
+    .modal-body {
+      flex: 1;
+      padding: 1rem;
       overflow-y: auto;
-      max-height: calc(100vh - 300px);
     }
 
-    /* Tab Content Styles */
-    .tab-content {
-      display: none;
-      padding: 1rem;
-    }
-
-    .tab-content.active {
-      display: block;
+    /* User info in modal */
+    .user-info {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      font-size: 0.875rem;
+      color: #9ca3af;
+      margin-bottom: 0.5rem;
     }
 
     /* Conversation Tab */
@@ -439,40 +547,6 @@
     .pagination-btn.active {
       background-color: #2563eb;
       color: white;
-    }
-
-    /* Animation overlay */
-    .animation-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 0.5rem;
-      background-color: rgba(0, 0, 0, 0.3);
-      z-index: 20;
-    }
-
-    .animation-overlay.positive {
-      background-color: rgba(16, 185, 129, 0.3);
-    }
-
-    .animation-overlay.negative {
-      background-color: rgba(239, 68, 68, 0.3);
-    }
-
-    .animation-icon {
-      width: 4rem;
-      height: 4rem;
-      animation: pulse 1s infinite;
-    }
-
-    .animation-icon.positive {
-      color: #10b981;
-    }
-
-    .animation-icon.negative {
-      color: #ef4444;
     }
 
     /* No results */
@@ -615,58 +689,27 @@
   </div>
 </div>
 
-<!-- Feedback Item Template -->
-<template id="feedback-item-template">
-  <div class="feedback-item">
-    <div class="feedback-item-header">
-      <div class="feedback-metadata">
-        <div class="user-info">User: <span class="user-name">username</span></div>
-        <div class="date-info"><span class="datetime">YYYY-MM-DD HH:MM</span></div>
-      </div>
-      <div class="feedback-actions">
-        <button class="action-btn positive" data-action="positive" title="Positive Feedback">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M7 10v12"></path>
-            <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path>
-          </svg>
-        </button>
-        <button class="action-btn negative" data-action="negative" title="Negative Feedback">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 14V2"></path>
-            <path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z"></path>
-          </svg>
-        </button>
-        <button class="action-btn hidden" data-action="hidden" title="Archive">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect width="20" height="5" x="2" y="3" rx="1"></rect>
-            <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path>
-            <path d="M10 12h4"></path>
-          </svg>
-        </button>
-      </div>
+<!-- Modal for viewing feedback content -->
+<div id="feedback-modal" class="modal-backdrop">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Feedback Details</div>
+      <button class="modal-close" id="modal-close">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     </div>
-    <!-- Schema Selection -->
-    <div class="schema-selection">
-      <button class="schema-btn" data-schema="Mesai">Mesai</button>
-      <button class="schema-btn" data-schema="Mukavele">Mukavele</button>
-      <button class="schema-btn" data-schema="Genel">Genel</button>
+    <div class="user-info" id="modal-user-info">
+      <span id="modal-username">User: username</span>
+      <span id="modal-datetime">Date: YYYY-MM-DD HH:MM</span>
     </div>
-    <div class="feedback-header">
-      <button class="tab-btn conversation-tab active" data-tab="conversation">Conversation</button>
-      <button class="tab-btn suggestion-tab" data-tab="suggestion">Suggestion</button>
-      <button class="tab-btn cypher-tab" data-tab="cypher">Cypher Query</button>
-    </div>
-    <div class="feedback-content">
-      <div class="tab-content conversation-content active" data-tab-content="conversation"></div>
-      <div class="tab-content suggestion-content" data-tab-content="suggestion">
-        <ul class="suggestion-list"></ul>
-      </div>
-      <div class="tab-content cypher-content" data-tab-content="cypher">
-        <ul class="cypher-list"></ul>
-      </div>
+    <div class="modal-body" id="modal-body">
+      <!-- Content will be dynamically inserted here -->
     </div>
   </div>
-</template>
+</div>
 
 <script>
   // MongoDB API config
@@ -688,6 +731,56 @@
   let totalPages = 0;
   let visibleTabCount = 5; // Number of tabs to show at once
 
+  // Function to format date in a user-friendly way
+  function formatDateTime(dateStr) {
+    // If it's already a well-formatted date, return it
+    if (/\d{1,2}\/\d{1,2}\/\d{4}, \d{1,2}:\d{2}:\d{2}/.test(dateStr)) {
+      return dateStr;
+    }
+
+    let date;
+
+    // Try to parse the date string
+    if (typeof dateStr === 'string') {
+      // Handle ISO format
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(dateStr)) {
+        date = new Date(dateStr);
+      }
+      // Handle Unix timestamp (seconds)
+      else if (/^\d{10}$/.test(dateStr)) {
+        date = new Date(parseInt(dateStr) * 1000);
+      }
+      // Handle Unix timestamp (milliseconds)
+      else if (/^\d{13}$/.test(dateStr)) {
+        date = new Date(parseInt(dateStr));
+      }
+      // Try general parsing as a fallback
+      else {
+        date = new Date(dateStr);
+      }
+    } else if (dateStr instanceof Date) {
+      date = dateStr;
+    } else {
+      return "Invalid date";
+    }
+
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return "Invalid date";
+    }
+
+    // Format the date in a user-friendly way
+    const options = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+
+    return date.toLocaleDateString(undefined, options);
+  }
+
   // Load or initialize DOM elements
   document.addEventListener('DOMContentLoaded', function() {
     // Query for DOM elements
@@ -702,6 +795,10 @@
     const noResults = document.getElementById('no-results');
     const connectionIndicator = document.getElementById('connection-indicator');
     const connectionText = document.getElementById('connection-text');
+
+    // Modal elements
+    const modal = document.getElementById('feedback-modal');
+    const modalClose = document.getElementById('modal-close');
 
     // Setup event listeners
     searchInput.addEventListener('input', () => {
@@ -778,9 +875,132 @@
       });
     });
 
+    // Modal close button
+    modalClose.addEventListener('click', () => {
+      closeModal();
+    });
+
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+
     // Initialize with MongoDB connection
     connectToMongoDB();
   });
+
+  // Function to open the modal with conversation content
+  function openConversationModal(item) {
+    currentItemId = item.id;
+
+    // Set title and user info
+    document.getElementById('modal-title').textContent = "Conversation";
+    document.getElementById('modal-username').textContent = `User: ${item.user}`;
+    document.getElementById('modal-datetime').textContent = `Date: ${formatDateTime(item.datetime)}`;
+
+    // Set conversation content
+    const modalBody = document.getElementById('modal-body');
+    modalBody.innerHTML = '';
+
+    if (item.conversation && item.conversation.length > 0) {
+      item.conversation.forEach(message => {
+        const messageElement = document.createElement('div');
+        messageElement.className = `conversation-item ${message.role}`;
+        messageElement.innerHTML = `
+          <div class="conversation-bubble">
+            <p class="conversation-role">${message.role === 'user' ? 'User' : 'Assistant'}</p>
+            <p>${message.message}</p>
+          </div>
+        `;
+        modalBody.appendChild(messageElement);
+      });
+    } else {
+      modalBody.innerHTML = '<p>No conversation available</p>';
+    }
+
+    // Show modal with animation
+    const modal = document.getElementById('feedback-modal');
+    modal.classList.add('active');
+  }
+
+  // Function to open the modal with suggestion content
+  function openSuggestionModal(item) {
+    currentItemId = item.id;
+
+    // Set title and user info
+    document.getElementById('modal-title').textContent = "Suggestion";
+    document.getElementById('modal-username').textContent = `User: ${item.user}`;
+    document.getElementById('modal-datetime').textContent = `Date: ${formatDateTime(item.datetime)}`;
+
+    // Set suggestion content
+    const modalBody = document.getElementById('modal-body');
+    modalBody.innerHTML = '';
+
+    const suggestionList = document.createElement('ul');
+    suggestionList.className = 'suggestion-list';
+
+    if (item.suggestions && item.suggestions.length > 0) {
+      item.suggestions.forEach(suggestion => {
+        const li = document.createElement('li');
+        li.textContent = suggestion;
+        suggestionList.appendChild(li);
+      });
+    } else {
+      const li = document.createElement('li');
+      li.textContent = 'No suggestions available';
+      suggestionList.appendChild(li);
+    }
+
+    modalBody.appendChild(suggestionList);
+
+    // Show modal with animation
+    const modal = document.getElementById('feedback-modal');
+    modal.classList.add('active');
+  }
+
+  // Function to open the modal with cypher query content
+  function openCypherModal(item) {
+    currentItemId = item.id;
+
+    // Set title and user info
+    document.getElementById('modal-title').textContent = "Cypher Query";
+    document.getElementById('modal-username').textContent = `User: ${item.user}`;
+    document.getElementById('modal-datetime').textContent = `Date: ${formatDateTime(item.datetime)}`;
+
+    // Set cypher content
+    const modalBody = document.getElementById('modal-body');
+    modalBody.innerHTML = '';
+
+    const cypherList = document.createElement('ul');
+    cypherList.className = 'cypher-list';
+
+    if (item.cypherQueries && item.cypherQueries.length > 0) {
+      item.cypherQueries.forEach(query => {
+        const li = document.createElement('li');
+        li.textContent = query;
+        cypherList.appendChild(li);
+      });
+    } else {
+      const li = document.createElement('li');
+      li.textContent = 'No Cypher queries available';
+      cypherList.appendChild(li);
+    }
+
+    modalBody.appendChild(cypherList);
+
+    // Show modal with animation
+    const modal = document.getElementById('feedback-modal');
+    modal.classList.add('active');
+  }
+
+  // Function to close the modal
+  function closeModal() {
+    const modal = document.getElementById('feedback-modal');
+    modal.classList.remove('active');
+    currentItemId = null;
+  }
 
   // Updated MongoDB data conversion focusing on required fields
   function convertMongoDataToAppFormat(mongoData) {
@@ -815,9 +1035,9 @@
               suggestions = JSON.parse(item.suggest);
             } catch {
               // If not JSON, split by newlines or use as is
-              suggestions = item.suggest.includes('\n') ? 
-                item.suggest.split('\n').filter(Boolean) : 
-                [item.suggest];
+              suggestions = item.suggest.includes('\n') ?
+                      item.suggest.split('\n').filter(Boolean) :
+                      [item.suggest];
             }
           } else if (Array.isArray(item.suggest)) {
             suggestions = item.suggest;
@@ -831,9 +1051,9 @@
               cypherQueries = JSON.parse(item.cypher);
             } catch {
               // If not JSON, split by newlines or use as is
-              cypherQueries = item.cypher.includes('\n') ? 
-                item.cypher.split('\n').filter(Boolean) : 
-                [item.cypher];
+              cypherQueries = item.cypher.includes('\n') ?
+                      item.cypher.split('\n').filter(Boolean) :
+                      [item.cypher];
             }
           } else if (Array.isArray(item.cypher)) {
             cypherQueries = item.cypher;
@@ -844,24 +1064,28 @@
 
           // Format the timestamp as a readable date
           let formattedDate = 'Unknown date';
+          let rawDate = '';
+
           if (item.timestamp) {
             // Convert timestamp to Date object
             const date = new Date(
-              typeof item.timestamp === 'number' ? 
-                item.timestamp * 1000 : // convert to milliseconds if it's a Unix timestamp
-                item.timestamp
+                    typeof item.timestamp === 'number' ?
+                            item.timestamp * 1000 : // convert to milliseconds if it's a Unix timestamp
+                            item.timestamp
             );
-            formattedDate = isNaN(date) ? 'Invalid date' : 
-              date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            formattedDate = isNaN(date) ? 'Invalid date' :
+                    date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            rawDate = item.timestamp;
           } else if (item.RDate && item.RDate.$date) {
             // Handle MongoDB Date format
             const date = new Date(
-              typeof item.RDate.$date === 'object' && item.RDate.$date.$numberLong ? 
-                parseInt(item.RDate.$date.$numberLong) : 
-                item.RDate.$date
+                    typeof item.RDate.$date === 'object' && item.RDate.$date.$numberLong ?
+                            parseInt(item.RDate.$date.$numberLong) :
+                            item.RDate.$date
             );
-            formattedDate = isNaN(date) ? 'Invalid date' : 
-              date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            formattedDate = isNaN(date) ? 'Invalid date' :
+                    date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            rawDate = date.toISOString();
           }
 
           return {
@@ -875,6 +1099,7 @@
             hidden: item.hidden || false,
             user: item.userName || 'Unknown',
             datetime: formattedDate,
+            rawDate: rawDate,
             timestamp: item.timestamp || ''
           };
         } catch (itemError) {
@@ -1311,11 +1536,11 @@
     // Apply search query
     if (searchQuery) {
       filtered = filtered.filter(item =>
-        (item.question && item.question.toLowerCase().includes(searchQuery)) ||
-        (item.conversation && item.conversation.some(msg => 
-          msg.message.toLowerCase().includes(searchQuery)
-        )) ||
-        (item.user && item.user.toLowerCase().includes(searchQuery))
+              (item.question && item.question.toLowerCase().includes(searchQuery)) ||
+              (item.conversation && item.conversation.some(msg =>
+                      msg.message.toLowerCase().includes(searchQuery)
+              )) ||
+              (item.user && item.user.toLowerCase().includes(searchQuery))
       );
     }
 
@@ -1323,12 +1548,12 @@
     renderItems();
   }
 
-  // Render feedback items
+  // Render feedback items with the updated design
   function renderItems() {
     const feedbackItems = document.getElementById('feedback-items');
     const noResults = document.getElementById('no-results');
     const resultsCount = document.getElementById('results-count');
-    
+
     if (!feedbackItems || !noResults || !resultsCount) return;
 
     // Update results count
@@ -1343,127 +1568,152 @@
     } else {
       noResults.classList.add('hidden');
 
-      // Get template
-      const template = document.getElementById('feedback-item-template');
-      
       // Render items
       filteredData.slice(0, pageSize).forEach((item, index) => {
-        // Clone template
-        const itemElement = template.content.cloneNode(true).children[0];
-        
-        // Set data attributes
+        // Create main feedback item container
+        const itemElement = document.createElement('div');
+        itemElement.className = 'feedback-item';
         itemElement.dataset.id = item.id;
-        if (item.hidden) itemElement.classList.add('hidden');
-        if (item.feedback === 'positive') {
-          itemElement.querySelector('.action-btn.positive').classList.add('active');
-        } else if (item.feedback === 'negative') {
-          itemElement.querySelector('.action-btn.negative').classList.add('active');
-        }
-        if (item.hidden) {
-          itemElement.querySelector('.action-btn.hidden').classList.add('active');
-        }
 
-        // Set user and date info
-        itemElement.querySelector('.user-name').textContent = item.user || 'Unknown';
-        itemElement.querySelector('.datetime').textContent = item.datetime || 'Unknown date';
+        // Create schema buttons column
+        const schemaButtons = document.createElement('div');
+        schemaButtons.className = 'schema-buttons';
 
-        // Set schema buttons
-        const schemaButtons = itemElement.querySelectorAll('.schema-btn');
-        schemaButtons.forEach(button => {
-          const buttonSchema = button.dataset.schema;
-          button.classList.toggle('active', buttonSchema === item.schema);
-          
-          // Add click event for assigning schema
-          button.addEventListener('click', () => {
-            setSchema(item.id, buttonSchema);
+        // Add schema buttons
+        schemaList.forEach(schema => {
+          const button = document.createElement('button');
+          button.className = `schema-btn${item.schema === schema ? ' active' : ''}`;
+          button.textContent = schema;
+          button.dataset.schema = schema;
+
+          button.addEventListener('click', (e) => {
+            e.stopPropagation(); // Don't open the modal when clicking schema buttons
+            setSchema(item.id, schema);
           });
+
+          schemaButtons.appendChild(button);
         });
 
-        // Set tab contents
-        // 1. Conversation
-        const conversationContent = itemElement.querySelector('.conversation-content');
-        if (item.conversation && item.conversation.length > 0) {
-          item.conversation.forEach(message => {
-            const messageElement = document.createElement('div');
-            messageElement.className = `conversation-item ${message.role}`;
-            messageElement.innerHTML = `
-              <div class="conversation-bubble">
-                <p class="conversation-role">${message.role === 'user' ? 'User' : 'Assistant'}</p>
-                <p>${message.message}</p>
-              </div>
-            `;
-            conversationContent.appendChild(messageElement);
-          });
-        } else {
-          conversationContent.innerHTML = '<p>No conversation available</p>';
-        }
+        // Create content area with user info and buttons
+        const contentArea = document.createElement('div');
+        contentArea.className = 'feedback-content';
 
-        // 2. Suggestions
-        const suggestionList = itemElement.querySelector('.suggestion-list');
-        if (item.suggestions && item.suggestions.length > 0) {
-          item.suggestions.forEach(suggestion => {
-            const li = document.createElement('li');
-            li.textContent = suggestion;
-            suggestionList.appendChild(li);
-          });
-        } else {
-          suggestionList.innerHTML = '<li>No suggestions available</li>';
-        }
+        // Add user info section
+        const userInfo = document.createElement('div');
+        userInfo.className = 'feedback-user-info';
+        userInfo.innerHTML = `
+          <span class="user-name">User: ${item.user}</span>
+          <span class="datetime">${formatDateTime(item.datetime)}</span>
+        `;
+        contentArea.appendChild(userInfo);
 
-        // 3. Cypher Queries
-        const cypherList = itemElement.querySelector('.cypher-list');
-        if (item.cypherQueries && item.cypherQueries.length > 0) {
-          item.cypherQueries.forEach(query => {
-            const li = document.createElement('li');
-            li.textContent = query;
-            cypherList.appendChild(li);
-          });
-        } else {
-          cypherList.innerHTML = '<li>No Cypher queries available</li>';
-        }
+        // Create buttons container
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.className = 'feedback-buttons';
 
-        // Add event listeners for tabs
-        const tabButtons = itemElement.querySelectorAll('.tab-btn');
-        tabButtons.forEach(button => {
-          button.addEventListener('click', () => {
-            const tabName = button.dataset.tab;
-            
-            // Remove active class from all tab buttons
-            itemElement.querySelectorAll('.tab-btn').forEach(btn => {
-              btn.classList.remove('active');
-            });
-            
-            // Hide all tab contents
-            itemElement.querySelectorAll('.tab-content').forEach(content => {
-              content.classList.remove('active');
-            });
-            
-            // Add active class to clicked button
-            button.classList.add('active');
-            
-            // Show corresponding tab content
-            itemElement.querySelector(`.tab-content[data-tab-content="${tabName}"]`).classList.add('active');
-          });
+        // Create large conversation button
+        const conversationBtn = document.createElement('button');
+        conversationBtn.className = 'conversation-btn';
+        conversationBtn.textContent = item.question;
+        conversationBtn.addEventListener('click', () => {
+          openConversationModal(item);
         });
 
-        // Add event listeners for action buttons
-        const actionButtons = itemElement.querySelectorAll('.action-btn');
-        actionButtons.forEach(button => {
-          button.addEventListener('click', e => {
-            e.stopPropagation();
-            const action = button.dataset.action;
-            
-            if (action === 'positive') {
-              handlePositiveFeedback(item.id);
-            } else if (action === 'negative') {
-              handleNegativeFeedback(item.id);
-            } else if (action === 'hidden') {
-              handleToggleHidden(item.id);
-            }
-          });
+        // Create container for small buttons
+        const smallButtons = document.createElement('div');
+        smallButtons.className = 'small-buttons';
+
+        // Create suggestion button
+        const suggestionBtn = document.createElement('button');
+        suggestionBtn.className = 'suggestion-btn';
+        suggestionBtn.textContent = 'Suggestion';
+        suggestionBtn.addEventListener('click', () => {
+          openSuggestionModal(item);
         });
 
-        // Add to container
+        // Create cypher button
+        const cypherBtn = document.createElement('button');
+        cypherBtn.className = 'cypher-btn';
+        cypherBtn.textContent = 'Cypher Query';
+        cypherBtn.addEventListener('click', () => {
+          openCypherModal(item);
+        });
+
+        // Add small buttons to container
+        smallButtons.appendChild(suggestionBtn);
+        smallButtons.appendChild(cypherBtn);
+
+        // Add buttons to container
+        buttonsContainer.appendChild(conversationBtn);
+        buttonsContainer.appendChild(smallButtons);
+
+        // Add buttons container to content area
+        contentArea.appendChild(buttonsContainer);
+
+        // Create the actions column
+        const actions = document.createElement('div');
+        actions.className = 'feedback-actions';
+
+        // Positive button (thumbs up)
+        const positiveBtn = document.createElement('button');
+        positiveBtn.className = `action-btn positive${item.feedback === 'positive' ? ' active' : ''}`;
+        positiveBtn.dataset.action = 'positive';
+        positiveBtn.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 10v12"></path>
+            <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path>
+          </svg>
+        `;
+
+        positiveBtn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Don't open the modal
+          handlePositiveFeedback(item.id);
+        });
+
+        // Archive button (now in middle position)
+        const archiveBtn = document.createElement('button');
+        archiveBtn.className = `action-btn archive${item.hidden ? ' active' : ''}`;
+        archiveBtn.dataset.action = 'archive';
+        archiveBtn.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="5" x="2" y="3" rx="1"></rect>
+            <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path>
+            <path d="M10 12h4"></path>
+          </svg>
+        `;
+
+        archiveBtn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Don't open the modal
+          handleToggleHidden(item.id);
+        });
+
+        // Negative button (thumbs down) - now last
+        const negativeBtn = document.createElement('button');
+        negativeBtn.className = `action-btn negative${item.feedback === 'negative' ? ' active' : ''}`;
+        negativeBtn.dataset.action = 'negative';
+        negativeBtn.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 14V2"></path>
+            <path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z"></path>
+          </svg>
+        `;
+
+        negativeBtn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Don't open the modal
+          handleNegativeFeedback(item.id);
+        });
+
+        // Add action buttons to actions container in the new order
+        actions.appendChild(positiveBtn);
+        actions.appendChild(archiveBtn);
+        actions.appendChild(negativeBtn);
+
+        // Add all parts to the item
+        itemElement.appendChild(schemaButtons);
+        itemElement.appendChild(contentArea);
+        itemElement.appendChild(actions);
+
+        // Add to the container
         feedbackItems.appendChild(itemElement);
       });
     }
@@ -1650,5 +1900,5 @@
 <script src="feedback-system-fixes-2.js"></script>
 <script src="pagination-fix.js"></script>
 <script src="similarity-fix.js"></script>
-<script src="debug_mode.js"></script>
+<script src="debug-mode.js"></script>
 </html>
