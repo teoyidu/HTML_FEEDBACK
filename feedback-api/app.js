@@ -210,15 +210,7 @@ app.patch('/api/conversations/:id/feedback', async (req, res) => {
             return res.status(404).json({ error: 'Conversation not found' });
         }
 
-        // Handle QDrant integration for feedback changes
-        try {
-            if (qdrantService && typeof qdrantService.handleFeedbackChange === 'function') {
-                await qdrantService.handleFeedbackChange(req.params.id, feedback);
-            }
-        } catch (qdrantError) {
-            console.error('QDrant feedback update error:', qdrantError);
-            // Don't fail the request if QDrant update fails
-        }
+        // Remove QDrant integration here - don't call handleFeedbackChange
 
         res.json({ success: true });
     } catch (error) {
@@ -226,7 +218,6 @@ app.patch('/api/conversations/:id/feedback', async (req, res) => {
         res.status(500).json({ error: 'Failed to update feedback' });
     }
 });
-
 // Update conversation schema
 app.patch('/api/conversations/:id/schema', async (req, res) => {
     try {
@@ -497,6 +488,113 @@ app.get('/api/health', (req, res) => {
         version: '1.0.0'
     });
 });
+
+// Add a new endpoint for manual QDrant additions
+app.post('/api/qdrant/add', async (req, res) => {
+    try {
+        if (!db) await connectToMongo();
+
+        const { id, conversation, cypherQuery } = req.body;
+
+        // Validate input
+        if (!id || !conversation || !cypherQuery) {
+            return res.status(400).json({
+                error: 'Missing required fields',
+                details: 'id, conversation, and cypherQuery are required'
+            });
+        }
+
+        // Find the conversation in MongoDB to get additional details
+        const collection = db.collection(collectionName);
+        let mongoConversation;
+
+        try {
+            // Try as ObjectId
+            try {
+                mongoConversation = await collection.findOne({ _id: new ObjectId(id) });
+            } catch (idError) {
+                // If not a valid ObjectId, try as a string ID
+                mongoConversation = await collection.findOne({ id: id });
+            }
+
+            if (!mongoConversation) {
+                return res.status(404).json({ error: 'Conversation not found' });
+            }
+        } catch (dbError) {
+            console.error('Database error:', dbError);
+            return res.status(500).json({ error: 'Database error', details: dbError.message });
+        }
+
+        // Check if QDrant service is available
+        if (!qdrantService || typeof qdrantService.saveConversationToQdrant !== 'function') {
+            return res.status(501).json({ error: 'QDrant service is not available' });
+        }
+
+        // Prepare the conversation data for QDrant
+        const qdrantData = {
+            id: id,
+            schema: mongoConversation.schema || '',
+            question: extractQuestion(mongoConversation),
+            feedback: 'positive', // Always positive for manual additions
+            conversation: parseConversation(conversation),  // Parse the user-provided conversation
+            timestamp: mongoConversation.timestamp || Date.now(),
+            type: mongoConversation.type || '',
+            userName: mongoConversation.userName || '',
+            sql_query: cypherQuery // User-provided cypher query
+        };
+
+        // Save to QDrant
+        const success = await qdrantService.saveConversationToQdrant(qdrantData);
+
+        if (!success) {
+            return res.status(500).json({ error: 'Failed to save to QDrant' });
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error adding to QDrant:', error);
+        res.status(500).json({ error: 'Failed to add to QDrant', details: error.message });
+    }
+});
+
+// Helper function to parse conversation text
+function parseConversation(conversationText) {
+    // Try to parse the conversation text into a structured format
+    try {
+        // First try: See if it's already JSON
+        try {
+            const parsed = JSON.parse(conversationText);
+            if (Array.isArray(parsed)) {
+                return parsed;
+            }
+        } catch (jsonError) {
+            // Not JSON, continue to next approach
+        }
+
+        // Simple parsing: Split by newlines and alternate roles
+        const lines = conversationText.split('\n').filter(line => line.trim() !== '');
+        const conversation = [];
+        let currentRole = 'user'; // Start with user
+
+        for (let line of lines) {
+            conversation.push({
+                role: currentRole,
+                content: line.trim()
+            });
+            // Toggle role for next line
+            currentRole = currentRole === 'user' ? 'assistant' : 'user';
+        }
+
+        return conversation;
+    } catch (error) {
+        console.error('Error parsing conversation text:', error);
+        return [{
+            role: 'user',
+            content: 'Error parsing conversation'
+        }];
+    }
+}
+
 
 // Helper function to parse messages
 function parseMessages(messagesString) {
