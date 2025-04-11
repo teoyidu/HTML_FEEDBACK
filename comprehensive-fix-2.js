@@ -1,7 +1,7 @@
-// restore-functionality.js - Add this after comprehensive-fix.js but before other scripts
+// feedback-system-fix-2.js - Add after comprehensive-fix.js
 
 (function() {
-    console.log("Restoring missing functionality...");
+    console.log("Restoring missing functionality - feedback-system-fix-2...");
 
     // Wait for document and data to be ready
     function initialize() {
@@ -21,12 +21,12 @@
      * Fix 1: Restore the additional data buttons (Agent History, IDs, etc.)
      */
     function restoreDataButtons() {
-        // Store original renderItems function if it hasn't been stored already
-        const originalRenderItems = window.originalRenderItems || window.renderItems;
+        // Store original renderItems function if it exists
+        const originalRenderItems = window.renderItems;
 
         // Create enhanced version that adds the data buttons
         window.renderItems = function() {
-            // Call the current renderItems function (our fixed version)
+            // Call the original renderItems function
             const result = originalRenderItems.apply(this, arguments);
 
             // After rendering, add the additional data buttons to each item
@@ -66,12 +66,12 @@
                         type: 'agent-history',
                         label: 'Agent History',
                         icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 8c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5Z"></path>
-                    <path d="M3 12c0-5.5 5.9-10 9-10"></path>
-                    <path d="M15 2v6h6"></path>
-                    <path d="M21 12c0 5.5-5.9 10-9 10"></path>
-                    <path d="M9 22v-6H3"></path>
-                  </svg>`,
+                <path d="M12 8c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5Z"></path>
+                <path d="M3 12c0-5.5 5.9-10 9-10"></path>
+                <path d="M15 2v6h6"></path>
+                <path d="M21 12c0 5.5-5.9 10-9 10"></path>
+                <path d="M9 22v-6H3"></path>
+              </svg>`,
                         dataField: 'agentHistoryFilteredData',
                         enabled: dataItem.hasAgentHistoryData || (dataItem.agentHistoryFilteredData && dataItem.agentHistoryFilteredData !== "[]" && dataItem.agentHistoryFilteredData.length > 5)
                     },
@@ -79,12 +79,12 @@
                         type: 'contract-ids',
                         label: 'Contract IDs',
                         icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
-                    <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"></path>
-                    <path d="M9 9h1"></path>
-                    <path d="M9 13h6"></path>
-                    <path d="M9 17h6"></path>
-                  </svg>`,
+                <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"></path>
+                <path d="M9 9h1"></path>
+                <path d="M9 13h6"></path>
+                <path d="M9 17h6"></path>
+              </svg>`,
                         dataField: 'contract_ids',
                         enabled: dataItem.hasContractIds || (dataItem.contract_ids && dataItem.contract_ids !== "[]" && dataItem.contract_ids.length > 5) || (dataItem.contractIds && dataItem.contractIds !== "[]" && dataItem.contractIds.length > 5)
                     },
@@ -92,12 +92,12 @@
                         type: 'document-ids',
                         label: 'Document IDs',
                         icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                    <polyline points="10 9 9 9 8 9"></polyline>
-                  </svg>`,
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>`,
                         dataField: 'document_ids',
                         enabled: dataItem.hasDocumentIds || (dataItem.document_ids && dataItem.document_ids !== "[]" && dataItem.document_ids.length > 5) || (dataItem.documentIds && dataItem.documentIds !== "[]" && dataItem.documentIds.length > 5)
                     },
@@ -105,8 +105,8 @@
                         type: 'entity-suggester',
                         label: 'Entity Data',
                         icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>`,
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>`,
                         dataField: 'entitySuggesterData',
                         enabled: dataItem.hasEntitySuggesterData || (dataItem.entitySuggesterData && dataItem.entitySuggesterData !== "[]" && dataItem.entitySuggesterData.length > 5)
                     }
@@ -275,6 +275,7 @@
         padding: 1rem;
         overflow-y: auto;
         flex: 1;
+        max-height: calc(90vh - 60px);
       `;
 
             // Format and add the data
@@ -386,7 +387,8 @@
                 // Update MongoDB via API with debounce
                 item._schemaUpdateTimeout = setTimeout(async () => {
                     try {
-                        const response = await fetch(`${window.API_BASE_URL || 'http://localhost:3000/api'}/conversations/${id}/schema`, {
+                        const apiUrl = window.API_BASE_URL || 'http://localhost:3000/api';
+                        const response = await fetch(`${apiUrl}/conversations/${id}/schema`, {
                             method: 'PATCH',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -496,11 +498,20 @@
                     if (negativeBtn && newFeedback === 'positive') {
                         negativeBtn.style.backgroundColor = '#374151';
                     }
+
+                    // Update item class
+                    if (newFeedback === 'positive') {
+                        itemElement.classList.add('positive');
+                        itemElement.classList.remove('negative');
+                    } else {
+                        itemElement.classList.remove('positive');
+                    }
                 }
 
                 // Update MongoDB via API
                 try {
-                    const response = await fetch(`${window.API_BASE_URL || 'http://localhost:3000/api'}/conversations/${id}/feedback`, {
+                    const apiUrl = window.API_BASE_URL || 'http://localhost:3000/api';
+                    const response = await fetch(`${apiUrl}/conversations/${id}/feedback`, {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
@@ -560,11 +571,20 @@
                     if (positiveBtn && newFeedback === 'negative') {
                         positiveBtn.style.backgroundColor = '#374151';
                     }
+
+                    // Update item class
+                    if (newFeedback === 'negative') {
+                        itemElement.classList.add('negative');
+                        itemElement.classList.remove('positive');
+                    } else {
+                        itemElement.classList.remove('negative');
+                    }
                 }
 
                 // Update MongoDB via API
                 try {
-                    const response = await fetch(`${window.API_BASE_URL || 'http://localhost:3000/api'}/conversations/${id}/feedback`, {
+                    const apiUrl = window.API_BASE_URL || 'http://localhost:3000/api';
+                    const response = await fetch(`${apiUrl}/conversations/${id}/feedback`, {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
@@ -630,7 +650,8 @@
 
                 // Update MongoDB via API
                 try {
-                    const response = await fetch(`${window.API_BASE_URL || 'http://localhost:3000/api'}/conversations/${id}/archive`, {
+                    const apiUrl = window.API_BASE_URL || 'http://localhost:3000/api';
+                    const response = await fetch(`${apiUrl}/conversations/${id}/archive`, {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
@@ -653,178 +674,6 @@
                     window.applyFilters();
                 }
             };
-        }
-    }
-
-    /**
-     * Fix 3: Restore the tab system
-     */
-    function restoreTabSystem() {
-        // If initializeTabs function doesn't exist, create it
-        if (typeof window.initializeTabs !== 'function') {
-            window.initializeTabs = function(totalPages) {
-                const tabsList = document.getElementById('tabs-list');
-                const prevTabBtn = document.getElementById('prev-tab-btn');
-                const nextTabBtn = document.getElementById('next-tab-btn');
-
-                if (!tabsList || !prevTabBtn || !nextTabBtn) {
-                    console.warn("Tab navigation elements not found");
-                    return;
-                }
-
-                // Clear existing tabs
-                tabsList.innerHTML = '';
-
-                // Create tabs
-                for (let i = 0; i < totalPages; i++) {
-                    const tab = document.createElement('button');
-                    tab.className = `tab-btn${window.currentPage === i ? ' active' : ''}`;
-                    tab.textContent = `Page ${i + 1}`;
-                    tab.dataset.page = i;
-
-                    tab.addEventListener('click', () => {
-                        if (window.currentPage !== i) {
-                            loadPage(i);
-                        }
-                    });
-
-                    tabsList.appendChild(tab);
-                }
-
-                // Update tab visibility based on current page
-                updateTabsVisibility();
-
-                // Update navigation buttons
-                prevTabBtn.disabled = window.currentPage === 0;
-                nextTabBtn.disabled = window.currentPage === totalPages - 1;
-
-                // Add event listeners to navigation buttons
-                prevTabBtn.addEventListener('click', () => {
-                    if (window.currentPage > 0) {
-                        loadPage(window.currentPage - 1);
-                    }
-                });
-
-                nextTabBtn.addEventListener('click', () => {
-                    if (window.currentPage < totalPages - 1) {
-                        loadPage(window.currentPage + 1);
-                    }
-                });
-            };
-        }
-
-        // If loadPage function doesn't exist, create it
-        if (typeof window.loadPage !== 'function') {
-            window.loadPage = async function(page) {
-                // Show loading state
-                const connectionText = document.getElementById('connection-text');
-                if (connectionText) {
-                    connectionText.textContent = `Loading page ${page + 1}...`;
-                }
-
-                try {
-                    // Fetch data for specific page
-                    const response = await fetch(`${window.API_BASE_URL || 'http://localhost:3000/api'}/conversations?page=${page}&limit=${window.pageSize || 20}`);
-
-                    if (!response.ok) {
-                        throw new Error(`API responded with status: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-
-                    // Get MongoDB data from result
-                    let mongoData;
-                    if (result.data && Array.isArray(result.data)) {
-                        mongoData = result.data;
-
-                        // Update pagination info
-                        window.currentPage = result.pagination ? result.pagination.page : page;
-                        window.totalPages = result.pagination ? result.pagination.totalPages : 1;
-                    } else if (Array.isArray(result)) {
-                        mongoData = result;
-                        window.currentPage = page;
-                        window.totalPages = 1;
-                    } else {
-                        throw new Error('Invalid data format from API');
-                    }
-
-                    // Convert and store data
-                    window.data = window.convertMongoDataToAppFormat ?
-                        window.convertMongoDataToAppFormat(mongoData) : mongoData;
-
-                    window.filteredData = [...window.data.filter(item => window.showHidden || !item.hidden)];
-
-                    // Update UI with new page
-                    const tabButtons = document.querySelectorAll('.tab-btn');
-                    tabButtons.forEach(tab => {
-                        const tabPage = parseInt(tab.dataset.page);
-                        tab.classList.toggle('active', tabPage === window.currentPage);
-                    });
-
-                    // Update tab visibility
-                    updateTabsVisibility();
-
-                    // Update navigation buttons
-                    document.getElementById('prev-tab-btn').disabled = window.currentPage === 0;
-                    document.getElementById('next-tab-btn').disabled = window.currentPage === window.totalPages - 1;
-
-                    // Update status message
-                    if (connectionText) {
-                        if (result.pagination) {
-                            connectionText.textContent = `Page ${window.currentPage + 1} of ${window.totalPages} - Total records: ${result.pagination.totalCount}`;
-                        } else {
-                            connectionText.textContent = `Page ${window.currentPage + 1} - ${window.data.length} records loaded`;
-                        }
-                    }
-
-                    // Apply filters
-                    if (typeof window.applyFilters === 'function') {
-                        window.applyFilters();
-                    } else {
-                        // Render items directly if applyFilters is not available
-                        window.renderItems();
-                    }
-                } catch (error) {
-                    console.error('Error loading page:', error);
-                    if (connectionText) {
-                        connectionText.textContent = `Failed to load page ${page + 1}: ${error.message}`;
-                    }
-
-                    // Show error alert
-                    createAlert(`Failed to load page ${page + 1}: ${error.message}`, 'error');
-                }
-            };
-        }
-
-        // If updateTabsVisibility function doesn't exist, create it
-        if (typeof window.updateTabsVisibility !== 'function') {
-            window.updateTabsVisibility = function() {
-                const tabButtons = document.querySelectorAll('.tab-btn');
-
-                // Default visible tab count if not set
-                const visibleTabCount = window.visibleTabCount || 5;
-
-                // Calculate start and end indexes for visible tabs
-                let startIndex = Math.max(0, window.currentPage - Math.floor(visibleTabCount / 2));
-                let endIndex = Math.min(window.totalPages - 1, startIndex + visibleTabCount - 1);
-
-                // Adjust start index if needed
-                if (endIndex - startIndex + 1 < visibleTabCount) {
-                    startIndex = Math.max(0, endIndex - visibleTabCount + 1);
-                }
-
-                // Show/hide tabs based on calculated range
-                tabButtons.forEach((tab, index) => {
-                    tab.style.display = (index >= startIndex && index <= endIndex) ? 'block' : 'none';
-                });
-            };
-        }
-
-        // Call initializeTabs if we have data
-        if (window.data && window.data.length > 0) {
-            // Use existing totalPages or default to 1
-            const totalPages = window.totalPages || 1;
-            window.initializeTabs(totalPages);
         }
     }
 
@@ -911,19 +760,183 @@
         return alert;
     }
 
-    // Initialize when document is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initialize);
-    } else {
-        // DOM already loaded
-        initialize();
-    }
+    /**
+     * Fix 3: Restore the tab system
+     */
+    function restoreTabSystem() {
+        // If initializeTabs function doesn't exist, create it
+        if (typeof window.initializeTabs !== 'function') {
+            window.initializeTabs = function(totalPages) {
+                const tabsList = document.getElementById('tabs-list');
+                const prevTabBtn = document.getElementById('prev-tab-btn');
+                const nextTabBtn = document.getElementById('next-tab-btn');
 
-    // Also initialize after a short delay to ensure data is loaded
-    setTimeout(initialize, 1000);
+                if (!tabsList || !prevTabBtn || !nextTabBtn) {
+                    console.warn("Tab navigation elements not found");
+                    return;
+                }
 
-    // Store original renderItems to use for patching
-    if (typeof window.renderItems === 'function') {
-        window.originalRenderItems = window.renderItems;
+                // Clear existing tabs
+                tabsList.innerHTML = '';
+
+                // Create tabs
+                for (let i = 0; i < totalPages; i++) {
+                    const tab = document.createElement('button');
+                    tab.className = `pagination-btn${window.currentPage === i ? ' active' : ''}`;
+                    tab.textContent = `Page ${i + 1}`;
+                    tab.dataset.page = i;
+
+                    tab.addEventListener('click', () => {
+                        if (window.currentPage !== i) {
+                            loadPage(i);
+                        }
+                    });
+
+                    tabsList.appendChild(tab);
+                }
+
+                // Update tab visibility based on current page
+                updateTabsVisibility();
+
+                // Update navigation buttons
+                prevTabBtn.disabled = window.currentPage === 0;
+                nextTabBtn.disabled = window.currentPage === totalPages - 1;
+
+                // Make sure event listeners are set up
+                setupTabNavigationButtons();
+            };
+        }
+
+        // If updateTabsVisibility function doesn't exist, create it
+        if (typeof window.updateTabsVisibility !== 'function') {
+            window.updateTabsVisibility = function() {
+                const tabButtons = document.querySelectorAll('.pagination-btn');
+
+                // Default visible tab count if not set
+                const visibleTabCount = window.visibleTabCount || 5;
+
+                // Calculate start and end indexes for visible tabs
+                let startIndex = Math.max(0, window.currentPage - Math.floor(visibleTabCount / 2));
+                let endIndex = Math.min(window.totalPages - 1, startIndex + visibleTabCount - 1);
+
+                // Adjust start index if needed
+                if (endIndex - startIndex + 1 < visibleTabCount) {
+                    startIndex = Math.max(0, endIndex - visibleTabCount + 1);
+                }
+
+                // Show/hide tabs based on calculated range
+                tabButtons.forEach((tab, index) => {
+                    tab.style.display = (index >= startIndex && index <= endIndex) ? 'block' : 'none';
+                });
+            };
+        }
+
+        // Add helper function to set up tab navigation buttons
+        function setupTabNavigationButtons() {
+            const prevTabBtn = document.getElementById('prev-tab-btn');
+            const nextTabBtn = document.getElementById('next-tab-btn');
+
+            if (!prevTabBtn || !nextTabBtn) return;
+
+            // Remove existing event listeners to avoid duplicates
+            const newPrevBtn = prevTabBtn.cloneNode(true);
+            const newNextBtn = nextTabBtn.cloneNode(true);
+
+            prevTabBtn.parentNode.replaceChild(newPrevBtn, prevTabBtn);
+            nextTabBtn.parentNode.replaceChild(newNextBtn, nextTabBtn);
+
+            // Add new event listeners
+            newPrevBtn.addEventListener('click', () => {
+                if (window.currentPage > 0) {
+                    loadPage(window.currentPage - 1);
+                }
+            });
+
+            newNextBtn.addEventListener('click', () => {
+                if (window.currentPage < window.totalPages - 1) {
+                    loadPage(window.currentPage + 1);
+                }
+            });
+        }
+
+        // If loadPage function doesn't exist, create it
+        if (typeof window.loadPage !== 'function') {
+            window.loadPage = async function(page) {
+                // Show loading state
+                const connectionText = document.getElementById('connection-text');
+                if (connectionText) {
+                    connectionText.textContent = `Loading page ${page + 1}...`;
+                }
+
+                try {
+                    // Fetch data for specific page
+                    const apiUrl = window.API_BASE_URL || 'http://localhost:3000/api';
+                    const response = await fetch(`${apiUrl}/conversations?page=${page}&limit=${window.pageSize || 20}`);
+
+                    if (!response.ok) {
+                        throw new Error(`API responded with status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+
+                    // Get MongoDB data from result
+                    let mongoData;
+                    if (result.data) {
+                        mongoData = result.data;
+
+                        // Update pagination info
+                        window.currentPage = result.pagination ? result.pagination.page : page;
+                        window.totalPages = result.pagination ? result.pagination.totalPages : 1;
+                    } else if (Array.isArray(result)) {
+                        mongoData = result;
+                        window.currentPage = page;
+                        window.totalPages = 1;
+                    } else {
+                        throw new Error('Invalid data format from API');
+                    }
+
+                    // Convert and store data
+                    window.data = window.convertMongoDataToAppFormat ?
+                        window.convertMongoDataToAppFormat(mongoData) : mongoData;
+
+                    window.filteredData = [...window.data.filter(item => window.showHidden || !item.hidden)];
+
+                    // Update UI with new page
+                    const tabButtons = document.querySelectorAll('.pagination-btn');
+                    tabButtons.forEach(tab => {
+                        const tabPage = parseInt(tab.dataset.page);
+                        tab.classList.toggle('active', tabPage === window.currentPage);
+                    });
+
+                    // Update tab visibility
+                    updateTabsVisibility();
+
+                    // Update navigation buttons
+                    const prevBtn = document.getElementById('prev-tab-btn');
+                    const nextBtn = document.getElementById('next-tab-btn');
+                    if (prevBtn) prevBtn.disabled = window.currentPage === 0;
+                    if (nextBtn) nextBtn.disabled = window.currentPage === window.totalPages - 1;
+
+                    // Update status message
+                    if (connectionText) {
+                        if (result.pagination) {
+                            connectionText.textContent = `Page ${window.currentPage + 1} of ${window.totalPages} - Total records: ${result.pagination.totalCount}`;
+                        } else {
+                            connectionText.textContent = `Page ${window.currentPage + 1} - ${window.data.length} records loaded`;
+                        }
+                    }
+
+                    // Apply filters to update UI
+                    if (typeof window.applyFilters === 'function') {
+                        window.applyFilters();
+                    } else {
+                        // Render items directly if applyFilters is not available
+                        window.renderItems();
+                    }
+                } catch (error) {
+                    console.error('Error loading page:', error);
+                }
+            };
+        }
     }
 })();
