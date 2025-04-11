@@ -1,5 +1,5 @@
 // Debug Mode Implementation
-// Add these functions near the top of your script section
+
 
 // Debug mode state
 let debugMode = false;
@@ -10,224 +10,274 @@ function generateSampleData() {
         {
             id: "sample1",
             schema: "Mesai",
-            question: "What are my work hours this week?",
+            question: "Bu hafta mesai saatlerim neler?",
             conversation: [
-                { role: "user", message: "What are my work hours this week?" },
-                { role: "assistant", message: "Your work hours for this week are:\nMonday: 9 AM - 5 PM\nTuesday: 9 AM - 5 PM\nWednesday: 10 AM - 6 PM\nThursday: 9 AM - 5 PM\nFriday: 9 AM - 4 PM" }
+                { role: "user", message: "Bu hafta mesai saatlerim neler?" },
+                { role: "assistant", message: "Bu haftaki mesai saatleriniz şöyledir:\nPazartesi: 09:00 - 17:00\nSalı: 09:00 - 17:00\nÇarşamba: 10:00 - 18:00\nPerşembe: 09:00 - 17:00\nCuma: 09:00 - 16:00" }
             ],
-            suggestions: [
-                "You might want to check your overtime hours for last week",
-                "Would you like to request time off?",
-                "Do you need to see your vacation balance?"
-            ],
+            suggestions: ["mesai saatleri", "fazla mesai durumu", "izin talebi oluştur"],
             cypherQueries: [
                 "MATCH (e:Employee {id: '12345'})-[:HAS_SCHEDULE]->(s:Schedule) WHERE s.week = '2023-W42' RETURN s",
                 "MATCH (e:Employee {id: '12345'})-[:WORKED]->(h:Hours) WHERE h.date >= '2023-10-16' RETURN h"
             ],
             feedback: "positive",
             hidden: false,
-            user: "testuser1",
+            user: "kullanici1",
             datetime: "2023-10-20 14:32:45"
         },
         {
             id: "sample2",
             schema: "Mukavele",
-            question: "When does my contract expire?",
+            question: "Sözleşmemin bitiş tarihi ne zaman?",
             conversation: [
-                { role: "user", message: "When does my contract expire?" },
-                { role: "assistant", message: "Your current contract expires on December 31, 2023. Would you like information about the renewal process?" }
+                { role: "user", message: "Sözleşmemin bitiş tarihi ne zaman?" },
+                { role: "assistant", message: "Mevcut sözleşmeniz 31 Aralık 2023 tarihinde sona erecektir. Yenileme süreci hakkında bilgi almak ister misiniz?" }
             ],
-            suggestions: [
-                "You might want to review your contract terms",
-                "Would you like to schedule a meeting with HR about renewal?",
-                "Do you need information about contract extensions?"
-            ],
+            suggestions: ["sözleşme bitiş tarihi", "yenileme süreci", "sözleşme şartları"],
             cypherQueries: [
                 "MATCH (e:Employee {id: '12345'})-[:HAS_CONTRACT]->(c:Contract) RETURN c.expiryDate",
                 "MATCH (c:Contract)-[:HAS_TERMS]->(t:Terms) WHERE c.employeeId = '12345' RETURN t"
             ],
             feedback: "negative",
             hidden: false,
-            user: "testuser2",
+            user: "kullanici2",
             datetime: "2023-10-19 10:15:30"
         },
         {
             id: "sample3",
             schema: "Genel",
-            question: "How do I request vacation time?",
+            question: "İzin talebinde nasıl bulunabilirim?",
             conversation: [
-                { role: "user", message: "How do I request vacation time?" },
-                { role: "assistant", message: "To request vacation time, you need to:\n1. Log into the employee portal\n2. Go to 'Time Off' section\n3. Click 'Request Time Off'\n4. Select the dates and type of leave\n5. Submit for approval" }
+                { role: "user", message: "İzin talebinde nasıl bulunabilirim?" },
+                { role: "assistant", message: "İzin talebinde bulunmak için:\n1. Çalışan portalına giriş yapın\n2. 'İzin Talepleri' bölümüne gidin\n3. 'Yeni İzin Talebi' butonuna tıklayın\n4. Tarih ve izin türünü seçin\n5. Onay için gönderin" }
             ],
-            suggestions: [
-                "You currently have 15 vacation days available",
-                "Would you like to see the company holiday calendar?",
-                "Do you need information about sick leave policy?"
-            ],
+            suggestions: ["izin talep formu", "izin hakkı sorgula", "izin takvimi"],
             cypherQueries: [
                 "MATCH (e:Employee {id: '12345'})-[:HAS_BENEFITS]->(b:Benefits) RETURN b.vacationDays",
                 "MATCH (p:Policy {type: 'vacation'})-[:APPLIES_TO]->(d:Department {id: '54321'}) RETURN p"
             ],
             feedback: null,
             hidden: true,
-            user: "testuser3",
+            user: "kullanici3",
             datetime: "2023-10-18 09:45:12"
         },
         {
             id: "sample4",
-            schema: "",
-            question: "What is the company travel policy?",
+            schema: "Mukavele",
+            question: "Sözleşme durumu sonlandı olan kaç tane künye var?",
             conversation: [
-                { role: "user", message: "What is the company travel policy?" },
-                { role: "assistant", message: "The company travel policy includes:\n- Flights must be economy class for trips under 6 hours\n- Business class is permitted for flights over 6 hours\n- Hotel stays should not exceed $200 per night in most cities\n- All expenses must be submitted with receipts within 14 days of return" }
+                { role: "user", message: "Sözleşme durumu sonlandı olan kaç tane künye var?" },
+                { role: "assistant", message: "Sözleşme durumu \"sonlandı\" olan künye sayısını kontrol ediyorum. Sistem kayıtlarına göre toplam 127 adet sonlandırılmış sözleşme künyesi bulunmaktadır." }
             ],
-            suggestions: [
-                "Would you like to see the list of approved travel vendors?",
-                "Do you need the expense report form?",
-                "I can help you book travel if you need assistance"
-            ],
+            suggestions: ["sonlandırılan sözleşmeler", "son 3 ayda biten sözleşmeler", "yenilenmesi gereken sözleşmeler"],
             cypherQueries: [
-                "MATCH (p:Policy {name: 'TravelPolicy'})-[:HAS_SECTION]->(s:Section) RETURN s",
-                "MATCH (v:Vendor)-[:APPROVED_FOR]->(c:Category {name: 'Travel'}) RETURN v"
+                "MATCH (c:Contract) WHERE c.status = 'sonlandı' RETURN count(c)",
+                "MATCH (c:Contract) WHERE c.status = 'sonlandı' AND c.terminationDate >= date() - duration('P3M') RETURN c"
             ],
             feedback: null,
             hidden: false,
-            user: "testuser4",
+            user: "kullanici4",
             datetime: "2023-10-17 11:20:15"
         },
         {
             id: "sample5",
             schema: "Mesai",
-            question: "How many sick days do I have left?",
+            question: "Kaç gün hastalık iznim kaldı?",
             conversation: [
-                { role: "user", message: "How many sick days do I have left?" },
-                { role: "assistant", message: "You have 7 sick days remaining for this year. You started with 10 days and have used 3 so far." },
-                { role: "user", message: "When do they expire?" },
-                { role: "assistant", message: "Your sick days expire at the end of the calendar year, December 31, 2023. They do not roll over to the next year." }
+                { role: "user", message: "Kaç gün hastalık iznim kaldı?" },
+                { role: "assistant", message: "Bu yıl için 7 gün hastalık izniniz kalmıştır. Toplam 10 gün hakkınız vardı ve şimdiye kadar 3 gün kullandınız." },
+                { role: "user", message: "Bu izinler ne zaman sona eriyor?" },
+                { role: "assistant", message: "Hastalık izinleriniz takvim yılı sonunda, 31 Aralık 2023 tarihinde sona erecektir. Kullanılmayan izinler bir sonraki yıla devredilmez." }
             ],
-            suggestions: [
-                "Do you need to request a sick day?",
-                "Would you like to review your recent time off?",
-                "I can show you the company sick leave policy if needed"
-            ],
+            suggestions: ["hastalık izni talebi oluştur", "son izinlerimi göster", "izin politikası nedir"],
             cypherQueries: [
                 "MATCH (e:Employee {id: '12345'})-[:HAS_BENEFITS]->(b:Benefits) RETURN b.sickDaysRemaining",
                 "MATCH (e:Employee {id: '12345'})-[:REQUESTED]->(t:TimeOff {type: 'Sick'}) RETURN t ORDER BY t.date DESC"
             ],
             feedback: "positive",
             hidden: false,
-            user: "testuser5",
+            user: "kullanici5",
             datetime: "2023-10-16 09:05:22"
         },
         {
             id: "sample6",
             schema: "Mukavele",
-            question: "Can I see the benefits included in my contract?",
+            question: "Sözleşmemdeki avantajları görebilir miyim?",
             conversation: [
-                { role: "user", message: "Can I see the benefits included in my contract?" },
-                { role: "assistant", message: "Your contract includes the following benefits:\n- Health insurance (covers 90% of medical expenses)\n- Dental insurance (covers 80% of dental procedures)\n- Vision insurance (annual eye exam and $200 for glasses/contacts)\n- 401(k) matching up to 5% of salary\n- 3 weeks paid vacation\n- 10 sick days\n- 5 personal days\n- Gym membership reimbursement up to $50/month" }
+                { role: "user", message: "Sözleşmemdeki avantajları görebilir miyim?" },
+                { role: "assistant", message: "Sözleşmeniz aşağıdaki avantajları içermektedir:\n- Sağlık sigortası (tıbbi masrafların %90'ını karşılar)\n- Diş sigortası (diş işlemlerinin %80'ini karşılar)\n- Göz sigortası (yıllık göz muayenesi ve gözlük/lens için 1500 TL)\n- Bireysel emeklilik katkısı (maaşın %5'ine kadar eşleşme)\n- 3 hafta ücretli izin\n- 10 gün hastalık izni\n- 5 gün kişisel izin\n- Spor salonu üyeliği geri ödemesi (ayda 500 TL'ye kadar)" }
             ],
-            suggestions: [
-                "Would you like more details about your health insurance plan?",
-                "Do you want to update your 401(k) contribution percentage?",
-                "I can help you submit a gym membership reimbursement"
-            ],
+            suggestions: ["sağlık sigortası detayları", "bireysel emeklilik katkısı", "spor salonu ödemesi nasıl yapılır"],
             cypherQueries: [
                 "MATCH (e:Employee {id: '12345'})-[:HAS_CONTRACT]->(c:Contract)-[:INCLUDES]->(b:Benefits) RETURN b",
                 "MATCH (i:Insurance {type: 'Health'})-[:COVERS]->(p:Procedure) RETURN p, p.coveragePercentage"
             ],
             feedback: "positive",
             hidden: false,
-            user: "testuser6",
+            user: "kullanici6",
             datetime: "2023-10-15 16:40:10"
         },
         {
             id: "sample7",
             schema: "Genel",
-            question: "What are the office hours for IT support?",
+            question: "BT desteği ofis saatleri nedir?",
             conversation: [
-                { role: "user", message: "What are the office hours for IT support?" },
-                { role: "assistant", message: "The IT support team is available during these hours:\nMonday-Friday: 8 AM - 8 PM\nSaturday: 10 AM - 4 PM\nSunday: Closed\n\nFor emergencies outside these hours, you can call the 24/7 support line at ext. 5555." }
+                { role: "user", message: "BT desteği ofis saatleri nedir?" },
+                { role: "assistant", message: "BT destek ekibi aşağıdaki saatlerde hizmet vermektedir:\nPazartesi-Cuma: 08:00 - 20:00\nCumartesi: 10:00 - 16:00\nPazar: Kapalı\n\nBu saatler dışındaki acil durumlar için dahili 5555 numaralı 7/24 destek hattını arayabilirsiniz." }
             ],
-            suggestions: [
-                "Would you like to submit an IT support ticket?",
-                "Do you need help with a specific IT issue?",
-                "I can connect you with an IT specialist if it's urgent"
-            ],
+            suggestions: ["BT destek talebi oluştur", "acil BT desteği", "BT ekibi iletişim bilgileri"],
             cypherQueries: [
                 "MATCH (d:Department {name: 'IT Support'})-[:HAS_HOURS]->(h:Hours) RETURN h",
                 "MATCH (d:Department {name: 'IT Support'})-[:HAS_CONTACT]->(c:Contact) RETURN c"
             ],
             feedback: null,
             hidden: false,
-            user: "testuser7",
+            user: "kullanici7",
             datetime: "2023-10-14 13:25:33"
         },
         {
             id: "sample8",
-            schema: "",
-            question: "How do I update my direct deposit information?",
+            schema: "Mukavele",
+            question: "Sözleşme durumu yürürlükte olan kaç tane sözleşme var?",
             conversation: [
-                { role: "user", message: "How do I update my direct deposit information?" },
-                { role: "assistant", message: "To update your direct deposit information:\n1. Log into the employee portal\n2. Go to 'Personal Information' section\n3. Click on 'Banking Details'\n4. Select 'Edit'\n5. Enter your new banking information\n6. Submit for verification\n\nPlease note that changes may take 1-2 pay cycles to take effect." }
+                { role: "user", message: "Sözleşme durumu yürürlükte olan kaç tane sözleşme var?" },
+                { role: "assistant", message: "Sözleşme durumu \"yürürlükte\" olan sözleşmelerin sayısını kontrol ediyorum. Sistem kayıtlarına göre şu anda toplam 243 adet yürürlükte olan sözleşme bulunmaktadır." }
             ],
-            suggestions: [
-                "Would you like me to guide you through the employee portal?",
-                "Do you need to check when your next payday is?",
-                "I can show you your current banking information if needed"
-            ],
+            suggestions: ["yakında sona erecek sözleşmeler", "departmanlara göre sözleşmeler", "son 6 ayda imzalanan sözleşmeler"],
             cypherQueries: [
-                "MATCH (e:Employee {id: '12345'})-[:HAS_BANKING_INFO]->(b:BankAccount) RETURN b",
-                "MATCH (p:PaySchedule) WHERE p.nextPayDate > date() RETURN p.nextPayDate ORDER BY p.nextPayDate LIMIT 1"
+                "MATCH (c:Contract) WHERE c.status = 'yürürlükte' RETURN count(c)",
+                "MATCH (c:Contract) WHERE c.status = 'yürürlükte' AND c.expiryDate <= date() + duration('P1M') RETURN c"
             ],
             feedback: "negative",
             hidden: false,
-            user: "testuser8",
+            user: "kullanici8",
             datetime: "2023-10-13 10:10:05"
         },
         {
             id: "sample9",
             schema: "Mesai",
-            question: "What are the holiday dates for this year?",
+            question: "Bu yılki resmi tatil günleri nelerdir?",
             conversation: [
-                { role: "user", message: "What are the holiday dates for this year?" },
-                { role: "assistant", message: "The company holidays for this year are:\n- New Year's Day: January 1\n- Martin Luther King Jr. Day: January 16\n- Presidents' Day: February 20\n- Memorial Day: May 29\n- Independence Day: July 4\n- Labor Day: September 4\n- Thanksgiving Day: November 23\n- Day after Thanksgiving: November 24\n- Christmas Eve: December 24\n- Christmas Day: December 25\n- New Year's Eve: December 31" }
+                { role: "user", message: "Bu yılki resmi tatil günleri nelerdir?" },
+                { role: "assistant", message: "Bu yılki resmi tatil günleri şunlardır:\n- Yılbaşı: 1 Ocak\n- Ulusal Egemenlik ve Çocuk Bayramı: 23 Nisan\n- Emek ve Dayanışma Günü: 1 Mayıs\n- Ramazan Bayramı: 21-23 Nisan\n- Gençlik ve Spor Bayramı: 19 Mayıs\n- Kurban Bayramı: 28 Haziran - 1 Temmuz\n- Demokrasi ve Milli Birlik Günü: 15 Temmuz\n- Zafer Bayramı: 30 Ağustos\n- Cumhuriyet Bayramı: 29 Ekim" }
             ],
-            suggestions: [
-                "Would you like to see next year's holiday calendar?",
-                "Do you need to request time off around any of these holidays?",
-                "I can show you which holidays fall on weekends this year"
-            ],
+            suggestions: ["gelecek yılın tatil takvimi", "hafta sonuna denk gelen tatiller", "tatil günleri izin talebi"],
             cypherQueries: [
                 "MATCH (h:Holiday)-[:IN_YEAR]->(y:Year {year: 2023}) RETURN h ORDER BY h.date",
                 "MATCH (h:Holiday)-[:IN_YEAR]->(y:Year {year: 2023}) WHERE h.date.dayOfWeek IN [6, 7] RETURN h"
             ],
             feedback: "positive",
             hidden: false,
-            user: "testuser9",
+            user: "kullanici9",
             datetime: "2023-10-12 15:55:40"
         },
         {
             id: "sample10",
             schema: "Mukavele",
-            question: "What is the company policy on remote work?",
+            question: "2025 yılında sonlanacak sözleşmeleri gösterir misin?",
             conversation: [
-                { role: "user", message: "What is the company policy on remote work?" },
-                { role: "assistant", message: "The current remote work policy allows employees to:\n- Work remotely up to 3 days per week\n- Must be in office Tuesday and Thursday for team meetings\n- Remote work requires manager approval with at least 24 hours notice\n- Must maintain regular working hours (9 AM - 5 PM)\n- Must be available via Teams/Slack during working hours\n- Need stable internet connection and appropriate home office setup" }
+                { role: "user", message: "2025 yılında sonlanacak sözleşmeleri gösterir misin?" },
+                { role: "assistant", message: "2025 yılında sona erecek sözleşmeleri kontrol ediyorum. Sistemde 2025 yılında sona erecek toplam 45 sözleşme bulunmaktadır. Bunların listesini görüntülemek ister misiniz?" }
             ],
-            suggestions: [
-                "Would you like to see the full remote work policy document?",
-                "Do you need to submit a remote work request?",
-                "I can help you set up your home office equipment"
-            ],
+            suggestions: ["2025'te sonlanacak sözleşmelerin listesi", "yenileme planlaması", "sözleşme yürürlük tarihleri"],
             cypherQueries: [
-                "MATCH (p:Policy {name: 'RemoteWork'})-[:HAS_VERSION]->(v:Version) RETURN v ORDER BY v.date DESC LIMIT 1",
-                "MATCH (e:Employee {id: '12345'})-[:REQUESTED]->(r:RemoteWork) WHERE r.date >= date() RETURN r"
+                "MATCH (c:Contract) WHERE c.expiryDate >= date('2025-01-01') AND c.expiryDate <= date('2025-12-31') RETURN c",
+                "MATCH (c:Contract) WHERE c.expiryDate >= date('2025-01-01') AND c.expiryDate <= date('2025-12-31') RETURN count(c)"
             ],
             feedback: null,
             hidden: true,
-            user: "testuser10",
+            user: "kullanici10",
             datetime: "2023-10-11 14:30:18"
+        },
+        {
+            id: "sample11",
+            schema: "Mukavele",
+            question: "ABC Ltd. ile yapılan sözleşmeleri listeler misin?",
+            conversation: [
+                { role: "user", message: "ABC Ltd. ile yapılan sözleşmeleri listeler misin?" },
+                { role: "assistant", message: "ABC Ltd. ile yapılan sözleşmeleri kontrol ediyorum. Sistemde ABC Ltd. ile yapılmış 12 adet sözleşme bulunmaktadır. İşte bu sözleşmelerin özeti:\n\n1. Hizmet Alım Sözleşmesi - 15/03/2022 (Yürürlükte)\n2. Gizlilik Sözleşmesi - 15/03/2022 (Yürürlükte)\n3. Yazılım Lisans Sözleşmesi - 01/06/2022 (Yürürlükte)\n4. Bakım Sözleşmesi - 01/07/2022 (Yürürlükte)\n5. Danışmanlık Hizmetleri - 15/10/2022 (Yürürlükte)\n6. Ek Protokol No.1 - 10/12/2022 (Yürürlükte)\n7. Veri İşleme Sözleşmesi - 01/01/2023 (Yürürlükte)\n8. Tedarik Sözleşmesi - 15/02/2023 (Sonlandı)\n9. Personel Kiralama - 01/04/2023 (Sonlandı)\n10. Ek Protokol No.2 - 15/05/2023 (Yürürlükte)\n11. Teknik Destek Sözleşmesi - 01/07/2023 (Yürürlükte)\n12. Eğitim Hizmetleri - 15/09/2023 (Yürürlükte)" }
+            ],
+            suggestions: ["ABC Ltd. son 6 aydaki sözleşmeler", "ABC Ltd. projeler", "ABC Ltd. yenileme tarihleri"],
+            cypherQueries: [
+                "MATCH (c:Contract)-[:WITH_COMPANY]->(comp:Company {name: 'ABC Ltd.'}) RETURN c ORDER BY c.startDate DESC",
+                "MATCH (c:Contract)-[:WITH_COMPANY]->(comp:Company {name: 'ABC Ltd.'}) WHERE c.status = 'yürürlükte' RETURN count(c)"
+            ],
+            feedback: "positive",
+            hidden: false,
+            user: "kullanici11",
+            datetime: "2023-10-10 11:15:22"
+        },
+        {
+            id: "sample12",
+            schema: "Mesai",
+            question: "Geçen ayki fazla mesailerimi gösterir misin?",
+            conversation: [
+                { role: "user", message: "Geçen ayki fazla mesailerimi gösterir misin?" },
+                { role: "assistant", message: "Geçen ay (Eylül 2023) yaptığınız fazla mesailer şu şekildedir:\n\n5 Eylül 2023: 2 saat\n12 Eylül 2023: 1.5 saat\n19 Eylül 2023: 3 saat\n26 Eylül 2023: 2 saat\n\nToplam: 8.5 saat fazla mesai" }
+            ],
+            suggestions: ["fazla mesai ödemeleri", "bu ayki planlanan mesailer", "fazla mesai talep formu"],
+            cypherQueries: [
+                "MATCH (e:Employee {id: '12345'})-[:WORKED]->(o:Overtime) WHERE o.date >= date('2023-09-01') AND o.date <= date('2023-09-30') RETURN o ORDER BY o.date",
+                "MATCH (e:Employee {id: '12345'})-[:WORKED]->(o:Overtime) WHERE o.date >= date('2023-09-01') AND o.date <= date('2023-09-30') RETURN sum(o.hours)"
+            ],
+            feedback: null,
+            hidden: false,
+            user: "kullanici12",
+            datetime: "2023-10-09 09:23:18"
+        },
+        {
+            id: "sample13",
+            schema: "Mukavele",
+            question: "Son 30 günde imzalanan sözleşmeleri listeler misin?",
+            conversation: [
+                { role: "user", message: "Son 30 günde imzalanan sözleşmeleri listeler misin?" },
+                { role: "assistant", message: "Son 30 günde imzalanan sözleşmeleri kontrol ediyorum. Son 30 gün içinde imzalanan 8 adet sözleşme bulunuyor:\n\n1. DEF A.Ş. - Hizmet Alım Sözleşmesi (26/09/2023)\n2. GHI Holding - Danışmanlık Sözleşmesi (28/09/2023)\n3. JKL Ltd. - Yazılım Lisans Anlaşması (02/10/2023)\n4. MNO A.Ş. - Gizlilik Sözleşmesi (05/10/2023)\n5. PQR Teknoloji - Bakım Anlaşması (09/10/2023)\n6. STU Sanayi - Tedarik Sözleşmesi (12/10/2023)\n7. VWX İnşaat - Proje Sözleşmesi (15/10/2023)\n8. YZ Elektrik - Hizmet Sözleşmesi (18/10/2023)" }
+            ],
+            suggestions: ["sözleşme detayları", "imza sürecindeki sözleşmeler", "sözleşme özet raporu"],
+            cypherQueries: [
+                "MATCH (c:Contract) WHERE c.signDate >= date() - duration('P30D') RETURN c ORDER BY c.signDate DESC",
+                "MATCH (c:Contract) WHERE c.signDate >= date() - duration('P30D') RETURN count(c)"
+            ],
+            feedback: "positive",
+            hidden: false,
+            user: "kullanici13",
+            datetime: "2023-10-08 16:45:30"
+        },
+        {
+            id: "sample14",
+            schema: "Genel",
+            question: "Sistem ne zaman bakıma girecek?",
+            conversation: [
+                { role: "user", message: "Sistem ne zaman bakıma girecek?" },
+                { role: "assistant", message: "Planlanan sistem bakımı bu hafta sonu, 22 Ekim 2023 Pazar günü saat 02:00 - 06:00 arasında gerçekleştirilecektir. Bu süre zarfında sistemin kullanılamayacağını ve tüm açık işlemlerin önceden kaydedilmesi gerektiğini hatırlatırız." }
+            ],
+            suggestions: ["bakım öncesi yapılması gerekenler", "bakım sırasında acil destek", "gelecek bakım tarihleri"],
+            cypherQueries: [
+                "MATCH (m:Maintenance) WHERE m.date > date() RETURN m ORDER BY m.date LIMIT 1",
+                "MATCH (m:Maintenance) WHERE date(m.date) = date('2023-10-22') RETURN m"
+            ],
+            feedback: null,
+            hidden: false,
+            user: "kullanici14",
+            datetime: "2023-10-07 10:35:12"
+        },
+        {
+            id: "sample15",
+            schema: "Mukavele",
+            question: "23 numaralı müşterinin sözleşmelerini getir",
+            conversation: [
+                { role: "user", message: "23 numaralı müşterinin sözleşmelerini getir" },
+                { role: "assistant", message: "23 numaralı müşteri (XYZ Teknoloji A.Ş.) ile ilgili sözleşmeleri kontrol ediyorum. Bu müşteri ile ilgili 5 sözleşme bulunmaktadır:\n\n1. Çerçeve Sözleşme #A-1023 (15/01/2022 - 15/01/2025)\n2. Yazılım Lisans Anlaşması #S-298 (01/02/2022 - 01/02/2024)\n3. Bakım ve Destek Sözleşmesi #M-76 (01/03/2022 - 01/03/2024)\n4. Ek Protokol #1 - API Entegrasyonu (15/07/2022 - 15/01/2025)\n5. Veri İşleme Sözleşmesi #D-42 (10/09/2022 - 15/01/2025)" }
+            ],
+            suggestions: ["23 numaralı müşteri detayları", "sözleşmelerin durumu", "yenileme tarihleri"],
+            cypherQueries: [
+                "MATCH (cl:Client {id:23})-[:CONTAINS]->(m:Matter)-[:HAS_CONTRACT]->(c:Contract) RETURN c.contractId, c.contractNumber, c.name",
+                "MATCH (cl:Client {id:23})-[:CONTAINS]->(m:Matter)-[:HAS_CONTRACT]->(c:Contract) WHERE c.status = 'yürürlükte' RETURN count(c)"
+            ],
+            feedback: null,
+            hidden: false,
+            user: "kullanici15",
+            datetime: "2023-10-06 13:20:45"
         }
     ];
 }
