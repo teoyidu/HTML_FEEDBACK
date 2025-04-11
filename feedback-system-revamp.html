@@ -148,6 +148,172 @@
       font-size: 0.875rem;
     }
 
+    /* Content with formatting support */
+    .conversation-content, .cypher-query, .suggestion-list li {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      line-height: 1.5;
+    }
+
+    /* Table styling for conversations */
+    .conversation-table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    .conversation-table td {
+      border: 1px solid #374151;
+      padding: 0.5rem;
+      text-align: left;
+    }
+
+    /* Cypher query styling */
+    .cypher-query {
+      background-color: #2d3748;
+      padding: 0.75rem;
+      border-radius: 0.25rem;
+      margin-bottom: 1rem;
+      font-family: monospace;
+      font-size: 0.9rem;
+      overflow-x: auto;
+    }
+
+    /* Enhance the suggestion list */
+    .suggestion-list li {
+      padding: 0.75rem;
+      background-color: #374151;
+      border-radius: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    /* Additional data buttons styles */
+    .additional-data-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .data-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.4rem 0.6rem;
+      background-color: #2d3748;
+      color: #d1d5db;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.2s;
+    }
+
+    .data-btn:hover:not(:disabled) {
+      background-color: #4a5568;
+      transform: translateY(-1px);
+    }
+
+    .data-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .data-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Data popup styles */
+    .data-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .data-popup.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .popup-content {
+      background-color: #1f2937;
+      border-radius: 0.5rem;
+      width: 90%;
+      max-width: 900px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+
+    .data-popup.active .popup-content {
+      transform: scale(1);
+    }
+
+    .popup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      border-bottom: 1px solid #374151;
+    }
+
+    .popup-header h3 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+
+    .popup-close {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      cursor: pointer;
+      padding: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.25rem;
+      transition: background-color 0.2s;
+    }
+
+    .popup-close:hover {
+      background-color: #374151;
+    }
+
+    .popup-body {
+      padding: 1rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .popup-body pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #d1d5db;
+      margin: 0;
+      padding: 0.5rem;
+      background-color: #2d3748;
+      border-radius: 0.25rem;
+      overflow-x: auto;
+    }
+
     /* MongoDB Connection Styles */
     .connection-status {
       display: flex;
@@ -785,6 +951,180 @@
     return date.toLocaleDateString(undefined, options);
   }
 
+  // Helper function to render formatted content
+  // Helper function to render formatted content with better HTML handling
+  function renderFormattedContent(text) {
+    if (!text) return '';
+
+    // Check if content is HTML (contains tags)
+    if (text.includes('<') && text.includes('>')) {
+      // This is likely HTML content, return it directly to be rendered as HTML
+      return text;
+    }
+
+    // Regular formatting for non-HTML content
+    // Replace newlines with <br>
+    let formattedText = text.replace(/\n/g, '<br>');
+
+    // Handle bold text (** or __)
+    formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    formattedText = formattedText.replace(/__(.*?)__/g, '<strong>$1</strong>');
+
+    // Handle table formatting if text contains pipe characters
+    if (formattedText.includes('|')) {
+      const lines = formattedText.split('<br>');
+      let inTable = false;
+      let tableContent = '';
+      let processedLines = [];
+
+      for (let line of lines) {
+        // Check if line looks like a table row
+        if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+          if (!inTable) {
+            // Start a new table
+            inTable = true;
+            tableContent = '<table class="conversation-table">';
+          }
+
+          // Process table row
+          const cells = line.split('|').filter(cell => cell.trim() !== '');
+          tableContent += '<tr>';
+          cells.forEach(cell => {
+            tableContent += `<td>${cell.trim()}</td>`;
+          });
+          tableContent += '</tr>';
+        } else {
+          if (inTable) {
+            // End the table
+            tableContent += '</table>';
+            processedLines.push(tableContent);
+            inTable = false;
+            tableContent = '';
+          }
+          processedLines.push(line);
+        }
+      }
+
+      // Close any open table
+      if (inTable) {
+        tableContent += '</table>';
+        processedLines.push(tableContent);
+      }
+
+      formattedText = processedLines.join('<br>');
+    }
+
+    return formattedText;
+  }
+
+  // Update the conversation modal function
+  function openConversationModal(item) {
+    currentItemId = item.id;
+
+    // Set title and user info
+    document.getElementById('modal-title').textContent = "Conversation";
+    document.getElementById('modal-username').textContent = `User: ${item.user}`;
+    document.getElementById('modal-datetime').textContent = `Date: ${formatDateTime(item.datetime)}`;
+
+    // Set conversation content
+    const modalBody = document.getElementById('modal-body');
+    modalBody.innerHTML = '';
+
+    if (item.conversation && item.conversation.length > 0) {
+      item.conversation.forEach(message => {
+        const messageElement = document.createElement('div');
+        messageElement.className = `conversation-item ${message.role}`;
+
+        const formattedMessage = renderFormattedContent(message.message);
+
+        messageElement.innerHTML = `
+        <div class="conversation-bubble">
+          <p class="conversation-role">${message.role === 'user' ? 'User' : 'Assistant'}</p>
+          <div class="conversation-content">${formattedMessage}</div>
+        </div>
+      `;
+        modalBody.appendChild(messageElement);
+      });
+    } else {
+      modalBody.innerHTML = '<p>No conversation available</p>';
+    }
+
+    // Show modal with animation
+    const modal = document.getElementById('feedback-modal');
+    modal.classList.add('active');
+  }
+
+  // Update the suggestion modal function
+  function openSuggestionModal(item) {
+    currentItemId = item.id;
+
+    // Set title and user info
+    document.getElementById('modal-title').textContent = "Suggestions";
+    document.getElementById('modal-username').textContent = `User: ${item.user}`;
+    document.getElementById('modal-datetime').textContent = `Date: ${formatDateTime(item.datetime)}`;
+
+    // Set suggestion content
+    const modalBody = document.getElementById('modal-body');
+    modalBody.innerHTML = '';
+
+    const suggestionList = document.createElement('ul');
+    suggestionList.className = 'suggestion-list';
+
+    if (item.suggestions && item.suggestions.length > 0) {
+      item.suggestions.forEach(suggestion => {
+        const li = document.createElement('li');
+        li.innerHTML = renderFormattedContent(suggestion);
+        suggestionList.appendChild(li);
+      });
+    } else {
+      const li = document.createElement('li');
+      li.textContent = 'No suggestions available';
+      suggestionList.appendChild(li);
+    }
+
+    modalBody.appendChild(suggestionList);
+
+    // Show modal with animation
+    const modal = document.getElementById('feedback-modal');
+    modal.classList.add('active');
+  }
+
+  // Update the cypher query modal function
+  function openCypherModal(item) {
+    currentItemId = item.id;
+
+    // Set title and user info
+    document.getElementById('modal-title').textContent = "Cypher Query";
+    document.getElementById('modal-username').textContent = `User: ${item.user}`;
+    document.getElementById('modal-datetime').textContent = `Date: ${formatDateTime(item.datetime)}`;
+
+    // Set cypher content
+    const modalBody = document.getElementById('modal-body');
+    modalBody.innerHTML = '';
+
+    const cypherContainer = document.createElement('div');
+    cypherContainer.className = 'cypher-container';
+
+    if (item.cypherQueries && item.cypherQueries.length > 0) {
+      item.cypherQueries.forEach(query => {
+        const queryElement = document.createElement('div');
+        queryElement.className = 'cypher-query';
+        queryElement.innerHTML = renderFormattedContent(query);
+        cypherContainer.appendChild(queryElement);
+      });
+    } else {
+      const noQueryElement = document.createElement('div');
+      noQueryElement.textContent = 'No Cypher queries available';
+      cypherContainer.appendChild(noQueryElement);
+    }
+
+    modalBody.appendChild(cypherContainer);
+
+    // Show modal with animation
+    const modal = document.getElementById('feedback-modal');
+    modal.classList.add('active');
+  }
+
   // Load or initialize DOM elements
   document.addEventListener('DOMContentLoaded', function() {
     // Query for DOM elements
@@ -912,12 +1252,15 @@
       item.conversation.forEach(message => {
         const messageElement = document.createElement('div');
         messageElement.className = `conversation-item ${message.role}`;
+
+        const formattedMessage = renderFormattedContent(message.message);
+
         messageElement.innerHTML = `
-          <div class="conversation-bubble">
-            <p class="conversation-role">${message.role === 'user' ? 'User' : 'Assistant'}</p>
-            <p>${message.message}</p>
-          </div>
-        `;
+        <div class="conversation-bubble">
+          <p class="conversation-role">${message.role === 'user' ? 'User' : 'Assistant'}</p>
+          <div class="conversation-content">${formattedMessage}</div>
+        </div>
+      `;
         modalBody.appendChild(messageElement);
       });
     } else {
@@ -1016,86 +1359,130 @@
     try {
       return mongoData.map(item => {
         try {
-          // Handle various message formats
-          let parsedMessages;
-          if (typeof item.messages === 'string') {
-            parsedMessages = parseMessages(item.messages);
-          } else if (Array.isArray(item.messages)) {
-            parsedMessages = parseMessages(item.messages);
-          } else {
-            parsedMessages = [
-              { role: 'user', message: 'No messages available' }
-            ];
-          }
+          console.log("Processing item:", item); // Add debugging to see the exact structure
 
-          // Find the first user message for title
-          const firstUserMessage = parsedMessages.find(msg => msg.role === 'user');
+          // Parse messages with better HTML handling
+          let parsedMessages = parseMessages(item.messages || "[]");
 
-          // Extract suggestions if available (can be in different formats)
+          // Find first user message for question (but handle empty arrays)
+          const firstUserMessage = parsedMessages.length > 0 ?
+                  parsedMessages.find(msg => msg.role === 'user') : null;
+          const question = firstUserMessage ? firstUserMessage.message : 'No question found';
+
+          // Handle entitySuggesterData more robustly
           let suggestions = [];
-          if (item.suggest && typeof item.suggest === 'string') {
-            // Try to parse if it's a JSON string
-            try {
-              suggestions = JSON.parse(item.suggest);
-            } catch {
-              // If not JSON, split by newlines or use as is
-              suggestions = item.suggest.includes('\n') ?
-                      item.suggest.split('\n').filter(Boolean) :
-                      [item.suggest];
+          try {
+            if (item.entitySuggesterData && item.entitySuggesterData !== "[]") {
+              // Log for debugging
+              console.log("Processing entitySuggesterData:", item.entitySuggesterData);
+
+              // Try different parsing approaches
+              if (typeof item.entitySuggesterData === 'string') {
+                // Try basic replacement approach
+                const cleanedData = item.entitySuggesterData
+                        .replace(/=/g, ':')
+                        .replace(/'/g, '"');
+
+                try {
+                  // Try parsing as JSON
+                  const parsedData = JSON.parse(cleanedData);
+
+                  if (Array.isArray(parsedData)) {
+                    parsedData.forEach(entry => {
+                      if (entry && entry.suggestion && entry.suggestion !== 'null') {
+                        suggestions.push(entry.suggestion);
+                      } else if (entry && entry.text && entry.text !== 'null') {
+                        suggestions.push(entry.text);
+                      } else if (entry && typeof entry === 'string') {
+                        suggestions.push(entry);
+                      }
+                    });
+                  }
+                } catch (jsonError) {
+                  console.warn("Error parsing entitySuggesterData as JSON", jsonError);
+
+                  // Use regex as fallback
+                  const suggestionMatches = item.entitySuggesterData.match(/suggestion=([^,}]+)/g);
+                  if (suggestionMatches) {
+                    suggestionMatches.forEach(match => {
+                      const value = match.replace('suggestion=', '').trim();
+                      if (value && value !== 'null') {
+                        suggestions.push(value);
+                      }
+                    });
+                  }
+                }
+              }
             }
-          } else if (Array.isArray(item.suggest)) {
-            suggestions = item.suggest;
+          } catch (suggErr) {
+            console.warn("Error processing suggestions:", suggErr);
           }
 
-          // Extract cypher queries
+          // Handle sql_query more safely
           let cypherQueries = [];
-          if (item.cypher && typeof item.cypher === 'string') {
-            // Try to parse if it's a JSON string
-            try {
-              cypherQueries = JSON.parse(item.cypher);
-            } catch {
-              // If not JSON, split by newlines or use as is
-              cypherQueries = item.cypher.includes('\n') ?
-                      item.cypher.split('\n').filter(Boolean) :
-                      [item.cypher];
+          if (item.sql_query) {
+            // Ensure it's not null
+            if (typeof item.sql_query === 'string' && item.sql_query.trim() !== '') {
+              cypherQueries = [item.sql_query];
             }
-          } else if (Array.isArray(item.cypher)) {
-            cypherQueries = item.cypher;
+          } else {
+            // Try to extract query from agentHistoryFilteredData as fallback
+            try {
+              if (item.agentHistoryFilteredData && item.agentHistoryFilteredData.includes('content=MATCH')) {
+                const match = item.agentHistoryFilteredData.match(/content=(MATCH[^}]+)/);
+                if (match && match[1]) {
+                  cypherQueries = [match[1].trim()];
+                }
+              }
+            } catch (queryErr) {
+              console.warn("Error extracting query from history:", queryErr);
+            }
           }
 
-          // Handle different MongoDB ID formats
-          const id = item._id?.$oid || item._id || item.id;
-
-          // Format the timestamp as a readable date
-          let formattedDate = 'Unknown date';
-          let rawDate = '';
-
+          // Extract timestamp with more robust handling
+          let timestamp;
           if (item.timestamp) {
-            // Convert timestamp to Date object
-            const date = new Date(
-                    typeof item.timestamp === 'number' ?
-                            item.timestamp * 1000 : // convert to milliseconds if it's a Unix timestamp
-                            item.timestamp
-            );
-            formattedDate = isNaN(date) ? 'Invalid date' :
-                    date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-            rawDate = item.timestamp;
+            timestamp = typeof item.timestamp === 'number' ?
+                    item.timestamp :
+                    (typeof item.timestamp === 'string' ? parseInt(item.timestamp) : null);
           } else if (item.RDate && item.RDate.$date) {
-            // Handle MongoDB Date format
-            const date = new Date(
-                    typeof item.RDate.$date === 'object' && item.RDate.$date.$numberLong ?
-                            parseInt(item.RDate.$date.$numberLong) :
-                            item.RDate.$date
-            );
-            formattedDate = isNaN(date) ? 'Invalid date' :
-                    date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-            rawDate = date.toISOString();
+            timestamp = new Date(item.RDate.$date).getTime();
+          } else {
+            timestamp = Date.now();
           }
+
+          // Format date
+          const date = new Date(timestamp);
+          const formattedDate = isNaN(date.getTime()) ? 'Invalid date' :
+                  date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+
+          // Extract ID with improved handling
+          const id = item._id?.$oid ||
+                  (typeof item._id === 'string' ? item._id : null) ||
+                  item.uuid ||
+                  `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
+          // Check for data presence
+          const hasAgentHistoryData = item.agentHistoryFilteredData &&
+                  item.agentHistoryFilteredData !== "[]" &&
+                  item.agentHistoryFilteredData.length > 2;
+
+          const hasContractIds = item.contract_ids &&
+                  item.contract_ids !== "[]" &&
+                  item.contract_ids.length > 2;
+
+          const hasDocumentIds = item.document_ids &&
+                  item.document_ids !== "[]" &&
+                  item.document_ids.length > 2;
+
+          const hasEntitySuggesterData = item.entitySuggesterData &&
+                  item.entitySuggesterData !== "[]" &&
+                  item.entitySuggesterData.length > 2;
 
           return {
-            id: id || `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-            schema: item.schema || '',
-            question: firstUserMessage ? firstUserMessage.message : 'No question found',
+            id: id,
+            schema: item.schema || '', // This field might not be present in new data
+            question: question,
             conversation: parsedMessages,
             suggestions: suggestions,
             cypherQueries: cypherQueries,
@@ -1103,14 +1490,23 @@
             hidden: item.hidden || false,
             user: item.userName || 'Unknown',
             datetime: formattedDate,
-            rawDate: rawDate,
-            timestamp: item.timestamp || ''
+            timestamp: timestamp,
+            // Add new data fields
+            agentHistoryFilteredData: item.agentHistoryFilteredData || "[]",
+            contractIds: item.contract_ids || "[]",
+            documentIds: item.document_ids || "[]",
+            entitySuggesterData: item.entitySuggesterData || "[]",
+            // Add flags for button enabling
+            hasAgentHistoryData: hasAgentHistoryData,
+            hasContractIds: hasContractIds,
+            hasDocumentIds: hasDocumentIds,
+            hasEntitySuggesterData: hasEntitySuggesterData
           };
         } catch (itemError) {
           console.error("Error converting item:", itemError, item);
           return null;
         }
-      }).filter(Boolean); // Remove any null items from errors
+      }).filter(Boolean); // Remove any null items
     } catch (error) {
       console.error("Error converting MongoDB data:", error);
       return [];
@@ -1119,117 +1515,125 @@
 
   // Memory-efficient message parsing
   function parseMessages(messagesString) {
-    // Handle non-string input
-    if (typeof messagesString !== 'string') {
-      // If it's already an object/array, process it directly
-      if (typeof messagesString === 'object' && messagesString !== null) {
-        if (Array.isArray(messagesString)) {
-          return messagesString.map(msg => ({
-            role: msg.role || 'unknown',
-            message: typeof msg.content === 'object' ?
-                    JSON.stringify(msg.content) :
-                    msg.content || 'No content'
-          }));
-        }
+    try {
+      // Add detailed debugging
+      console.log("Parsing messages:", messagesString);
 
-        // If single object, convert to array
-        return [{
-          role: messagesString.role || 'unknown',
-          message: typeof messagesString.content === 'object' ?
-                  JSON.stringify(messagesString.content) :
-                  messagesString.content || 'No content'
-        }];
+      // Handle null/undefined
+      if (!messagesString) {
+        console.warn('Messages is null or undefined');
+        return [
+          { role: 'user', message: 'No messages available' }
+        ];
       }
 
-      // Return default for non-string non-object
-      console.warn('Messages is not a string or object:', messagesString);
-      return [
-        { role: 'user', message: 'Message parsing error' },
-        { role: 'assistant', message: 'Unable to parse messages' }
-      ];
-    }
+      // If it's not a string, return default message
+      if (typeof messagesString !== 'string') {
+        console.warn('Messages is not a string:', messagesString);
+        return [
+          { role: 'user', message: 'Message parsing error' },
+          { role: 'assistant', message: 'Unable to parse messages' }
+        ];
+      }
 
-    try {
-      // Clean the string to make it more JSON-like
-      let cleanedString = messagesString
-              .replace(/([a-zA-Z]+)=/g, '"$1":')  // Convert property=value to "property":value
-              .replace(/'/g, '"')                  // Replace single quotes with double quotes
-              .replace(/\"\{/g, '{')              // Fix any malformed quotes before brackets
-              .replace(/\}\"/g, '}');             // Fix any malformed quotes after brackets
+      // Handle new format with role=user, content=...
+      if (messagesString.includes('role=') && messagesString.includes('content=')) {
+        try {
+          // Clean up the string to make it more parseable
+          let cleanedString = messagesString
+                  .replace(/^\[|\]$/g, '') // Remove outer brackets
+                  .replace(/\}\s*,\s*\{/g, '}|||{'); // Replace comma between objects with separator
 
-      // Try to parse as JSON
+          // Split by our separator
+          const messageParts = cleanedString.split('|||');
+
+          return messageParts.map(part => {
+            // Extract role
+            const roleMatch = part.match(/role=([^,}]+)/);
+            const role = roleMatch ? roleMatch[1].trim() : 'unknown';
+
+            // Extract content - capture everything after content= until the end or next field
+            const contentMatch = part.match(/content=(.*?)(?=\s*,\s*\w+=|\s*\}|\s*$)/s);
+            let message = contentMatch ? contentMatch[1].trim() : 'No content';
+
+            // If message starts with a quotation mark but doesn't end with one, add it
+            if (message.startsWith('"') && !message.endsWith('"') && !message.endsWith('"}')) {
+              message += '"';
+            }
+
+            // Clean up any remaining braces or quotes
+            message = message.replace(/^\{|\}$/g, '').trim();
+            message = message.replace(/^"|"$/g, '').trim();
+
+            return { role, message };
+          });
+        } catch (formatError) {
+          console.error("Error parsing new message format:", formatError);
+        }
+      }
+
+      // Try JSON parsing
       try {
-        const parsed = JSON.parse(cleanedString);
-        if (Array.isArray(parsed)) {
-          return parsed.map(msg => ({
+        // First try direct JSON parse
+        const parsedJson = JSON.parse(messagesString);
+        if (Array.isArray(parsedJson)) {
+          return parsedJson.map(msg => ({
             role: msg.role || 'unknown',
-            message: typeof msg.content === 'object' ?
-                    (msg.content.reduced_user_message || JSON.stringify(msg.content)) :
-                    msg.content || 'No content'
+            message: msg.content || 'No content'
           }));
         }
       } catch (jsonError) {
-        // Continue to regex approach if JSON parsing fails
+        // Continue to other approaches
+        console.warn("JSON parsing failed:", jsonError.message);
       }
 
-      // Use regex to extract content - covers most common formats
-      const regex = /\{(?:['"]?role['"]?[:=]\s*['"]?(.*?)['"]?[,}]).*?(?:['"]?content['"]?[:=]\s*(.*?)(?=\s*[,}]|$))/g;
-      const matches = [];
-      let match;
+      // Try with replacements
+      try {
+        // Replace = with : to make it valid JSON-like
+        let jsonLikeString = messagesString
+                .replace(/([a-zA-Z]+)=/g, '"$1":')
+                .replace(/'/g, '"');
 
-      while ((match = regex.exec(messagesString)) !== null) {
-        const role = match[1]?.trim() || 'unknown';
-        let content = match[2];
-
-        // Clean up content
-        if (content) {
-          // Remove surrounding quotes if present
-          content = content.replace(/^['"]|['"]$/g, '');
-
-          // Handle object content - simplified approach
-          if (content.startsWith('{') && content.endsWith('}')) {
-            try {
-              const contentObj = JSON.parse(content.replace(/'/g, '"'));
-              content = contentObj.reduced_user_message || JSON.stringify(contentObj);
-            } catch (e) {
-              // Keep as is if parsing fails
-            }
-          }
+        const parsedJson = JSON.parse(jsonLikeString);
+        if (Array.isArray(parsedJson)) {
+          return parsedJson.map(msg => ({
+            role: msg.role || 'unknown',
+            message: msg.content || 'No content'
+          }));
         }
-
-        matches.push({
-          role: role,
-          message: content || 'No content'
-        });
+      } catch (jsonError2) {
+        console.warn('Failed with replacements too:', jsonError2.message);
       }
 
-      if (matches.length > 0) {
-        return matches;
+      // Try regex approach
+      try {
+        const matches = messagesString.match(/\{role=(.*?), content=(.*?)(\},|\}$)/gs);
+        if (matches && matches.length > 0) {
+          return matches.map(match => {
+            const roleMatch = match.match(/role=(.*?),/);
+            const contentMatch = match.match(/content=(.*?)(\},|\}$)/s);
+
+            return {
+              role: roleMatch ? roleMatch[1].trim() : 'unknown',
+              message: contentMatch ? contentMatch[1].trim() : 'Error parsing message'
+            };
+          });
+        }
+      } catch (regexError) {
+        console.warn('Regex parsing failed:', regexError.message);
       }
 
-      // Last resort simple format detection
-      if (messagesString.includes('role') && messagesString.includes('content')) {
-        const items = messagesString.split('},').map(part => part.trim() + (part.endsWith('}') ? '' : '}'));
-
-        return items.map(item => {
-          const roleMatch = item.match(/role['":\s=]+(['"]?)(.*?)\1[,}]/i);
-          const contentMatch = item.match(/content['":\s=]+(['"]?)(.*?)\1[,}]/i);
-
-          return {
-            role: roleMatch ? roleMatch[2].trim() : 'unknown',
-            message: contentMatch ? contentMatch[2].trim() : 'No content'
-          };
-        });
-      }
-
-      // Return default for unparseable content
+      // Last resort
+      console.warn("Using fallback parsing for:", messagesString.substring(0, 50) + "...");
       return [
-        { role: 'user', message: 'Error parsing message content' }
+        { role: 'user', message: 'Error parsing message' },
+        { role: 'assistant', message: 'Error parsing message' }
       ];
     } catch (error) {
       console.error("Critical error parsing messages:", error);
       return [
-        { role: 'user', message: 'Error parsing message' }
+        { role: 'user', message: 'Error parsing message' },
+        { role: 'assistant', message: 'Error parsing message' }
       ];
     }
   }
@@ -1283,6 +1687,11 @@
       console.log("Converted data:", data);
 
       filteredData = [...data.filter(item => !item.hidden)];
+
+      // In connectToMongoDB function, add after data conversion:
+      console.log("API response received:", result);
+      console.log("Converted data length:", data.length);
+      console.log("First item:", data[0]);
 
       // Initialize tabs
       initializeTabs(totalPages);
@@ -1558,6 +1967,8 @@
     const noResults = document.getElementById('no-results');
     const resultsCount = document.getElementById('results-count');
 
+    console.log("Rendering items, filtered data length:", filteredData.length);
+
     if (!feedbackItems || !noResults || !resultsCount) return;
 
     // Update results count
@@ -1654,6 +2065,99 @@
         // Add buttons container to content area
         contentArea.appendChild(buttonsContainer);
 
+        // Create additional data buttons container
+        const additionalDataButtons = document.createElement('div');
+        additionalDataButtons.className = 'additional-data-buttons';
+
+        // Create agent history button
+        const agentHistoryBtn = document.createElement('button');
+        agentHistoryBtn.className = 'data-btn agent-history-btn';
+        agentHistoryBtn.disabled = !item.hasAgentHistoryData;
+        agentHistoryBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 8c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5Z"></path>
+            <path d="M3 12c0-5.5 5.9-10 9-10"></path>
+            <path d="M15 2v6h6"></path>
+            <path d="M21 12c0 5.5-5.9 10-9 10"></path>
+            <path d="M9 22v-6H3"></path>
+          </svg>
+          Agent History
+        `;
+        agentHistoryBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (item.hasAgentHistoryData) {
+            openDataPopup('Agent History', item.agentHistoryFilteredData);
+          }
+        });
+
+        // Create contract IDs button
+        const contractIdsBtn = document.createElement('button');
+        contractIdsBtn.className = 'data-btn contract-ids-btn';
+        contractIdsBtn.disabled = !item.hasContractIds;
+        contractIdsBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+            <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"></path>
+            <path d="M9 9h1"></path>
+            <path d="M9 13h6"></path>
+            <path d="M9 17h6"></path>
+          </svg>
+          Contract IDs
+        `;
+        contractIdsBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (item.hasContractIds) {
+            openDataPopup('Contract IDs', item.contractIds);
+          }
+        });
+
+        // Create document IDs button
+        const documentIdsBtn = document.createElement('button');
+        documentIdsBtn.className = 'data-btn document-ids-btn';
+        documentIdsBtn.disabled = !item.hasDocumentIds;
+        documentIdsBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Document IDs
+        `;
+        documentIdsBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (item.hasDocumentIds) {
+            openDataPopup('Document IDs', item.documentIds);
+          }
+        });
+
+        // Create entity suggester button
+        const entitySuggesterBtn = document.createElement('button');
+        entitySuggesterBtn.className = 'data-btn entity-suggester-btn';
+        entitySuggesterBtn.disabled = !item.hasEntitySuggesterData;
+        entitySuggesterBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+          Entity Data
+        `;
+        entitySuggesterBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (item.hasEntitySuggesterData) {
+            openDataPopup('Entity Suggester Data', item.entitySuggesterData);
+          }
+        });
+
+        // Add buttons to container
+        additionalDataButtons.appendChild(agentHistoryBtn);
+        additionalDataButtons.appendChild(contractIdsBtn);
+        additionalDataButtons.appendChild(documentIdsBtn);
+        additionalDataButtons.appendChild(entitySuggesterBtn);
+
+        // Add additional data buttons to the content area
+        contentArea.appendChild(additionalDataButtons);
+
         // Create the actions column
         const actions = document.createElement('div');
         actions.className = 'feedback-actions';
@@ -1721,6 +2225,143 @@
         feedbackItems.appendChild(itemElement);
       });
     }
+  }
+
+  // Create a popup for displaying additional data
+  function openDataPopup(title, data) {
+    // Check if a popup already exists and remove it
+    const existingPopup = document.getElementById('data-popup');
+    if (existingPopup) {
+      existingPopup.remove();
+    }
+
+    // Create popup container
+    const popup = document.createElement('div');
+    popup.id = 'data-popup';
+    popup.className = 'data-popup';
+    popup.setAttribute('role', 'dialog');
+    popup.setAttribute('aria-labelledby', 'popup-title');
+    popup.setAttribute('aria-modal', 'true');
+
+    // Create popup content
+    const popupContent = document.createElement('div');
+    popupContent.className = 'popup-content';
+
+    // Create header
+    const popupHeader = document.createElement('div');
+    popupHeader.className = 'popup-header';
+
+    // Create title
+    const popupTitle = document.createElement('h3');
+    popupTitle.id = 'popup-title';
+    popupTitle.textContent = title;
+    popupHeader.appendChild(popupTitle);
+
+    // Create button container for header
+    const headerButtons = document.createElement('div');
+    headerButtons.className = 'popup-header-buttons';
+
+    // Create copy button
+    const copyButton = document.createElement('button');
+    copyButton.className = 'popup-copy';
+    copyButton.title = 'Copy to clipboard';
+    copyButton.innerHTML = `
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>
+  `;
+    copyButton.addEventListener('click', () => {
+      let textToCopy = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+      navigator.clipboard.writeText(textToCopy)
+              .then(() => {
+                copyButton.classList.add('success');
+                setTimeout(() => copyButton.classList.remove('success'), 1500);
+              })
+              .catch(err => console.error('Failed to copy: ', err));
+    });
+    headerButtons.appendChild(copyButton);
+
+    // Create close button
+    const closeButton = document.createElement('button');
+    closeButton.className = 'popup-close';
+    closeButton.title = 'Close';
+    closeButton.setAttribute('aria-label', 'Close');
+    closeButton.innerHTML = `
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  `;
+    closeButton.addEventListener('click', () => closePopup(popup));
+    headerButtons.appendChild(closeButton);
+
+    popupHeader.appendChild(headerButtons);
+    popupContent.appendChild(popupHeader);
+
+    // Create body
+    const popupBody = document.createElement('div');
+    popupBody.className = 'popup-body';
+
+    // Format and add the data
+    let formattedData;
+    try {
+      // Handle if data is already an object
+      if (typeof data === 'object' && data !== null) {
+        formattedData = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      }
+      // Try to parse JSON if it's a string
+      else if (typeof data === 'string') {
+        try {
+          const parsedData = JSON.parse(data);
+          formattedData = `<pre>${JSON.stringify(parsedData, null, 2)}</pre>`;
+        } catch {
+          // If not valid JSON, display as formatted text
+          formattedData = `<pre>${data}</pre>`;
+        }
+      } else {
+        formattedData = `<pre>${String(data)}</pre>`;
+      }
+    } catch (e) {
+      formattedData = `<pre>Error displaying data: ${e.message}</pre>`;
+    }
+
+    popupBody.innerHTML = formattedData;
+    popupContent.appendChild(popupBody);
+
+    // Add content to popup
+    popup.appendChild(popupContent);
+
+    // Add popup to body
+    document.body.appendChild(popup);
+
+    // Trap focus in modal for accessibility
+    const focusableElements = popup.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    const firstElement = focusableElements[0];
+    if (firstElement) firstElement.focus();
+
+    // Animate the popup
+    setTimeout(() => popup.classList.add('active'), 10);
+
+    // Close popup function
+    function closePopup(element) {
+      element.classList.remove('active');
+      setTimeout(() => element.remove(), 300);
+    }
+
+    // Add click outside to close
+    popup.addEventListener('click', (e) => {
+      if (e.target === popup) closePopup(popup);
+    });
+
+    // Add escape key to close
+    const escapeHandler = (e) => {
+      if (e.key === 'Escape') {
+        closePopup(popup);
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    };
+    document.addEventListener('keydown', escapeHandler);
   }
 
   // Handle positive feedback

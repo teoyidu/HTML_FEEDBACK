@@ -5,6 +5,7 @@
 let debugMode = false;
 
 // Function to generate sample data with different schemas, feedback states, and content
+// Function to generate sample data with the new structure
 function generateSampleData() {
     return [
         {
@@ -23,7 +24,13 @@ function generateSampleData() {
             feedback: "positive",
             hidden: false,
             user: "kullanici1",
-            datetime: "2023-10-20 14:32:45"
+            datetime: "2023-10-20 14:32:45",
+            // New fields
+            agentHistoryFilteredData: "[{_id=67f7ed72d93f8208ba752ea3, conversationId=1c352b10-82f7-4e71-a654-59e73e5746dd, uuid=50704a08-1626-11f0-ae95-0242ac150002, userName=kullanici1, timestamp=1744301426, RDate=Thu Apr 10 19:10:26 TRT 2025, messages=[{role=user, content=Bu hafta mesai saatlerim neler?}, {role=assistant, content=Bu haftaki mesai saatleriniz şöyledir:\\nPazartesi: 09:00 - 17:00\\nSalı: 09:00 - 17:00\\nÇarşamba: 10:00 - 18:00\\nPerşembe: 09:00 - 17:00\\nCuma: 09:00 - 16:00}], type=scheduler}]",
+            contract_ids: "[\"CT-001\", \"CT-002\", \"CT-003\"]",
+            document_ids: "[\"DOC-123\", \"DOC-456\"]",
+            entitySuggesterData: "[{text: \"mesai saatleri\"}, {text: \"fazla mesai durumu\"}, {text: \"izin talebi oluştur\"}]",
+            sql_query: "MATCH (e:Employee {id: '12345'})-[:HAS_SCHEDULE]->(s:Schedule) WHERE s.week = '2023-W42' RETURN s"
         },
         {
             id: "sample2",
@@ -41,7 +48,13 @@ function generateSampleData() {
             feedback: "negative",
             hidden: false,
             user: "kullanici2",
-            datetime: "2023-10-19 10:15:30"
+            datetime: "2023-10-19 10:15:30",
+            // New fields with partial data
+            agentHistoryFilteredData: "[]",
+            contract_ids: "[\"CT-004\", \"CT-005\"]",
+            document_ids: "[]",
+            entitySuggesterData: "[{text: \"sözleşme bitiş tarihi\"}, {text: \"yenileme süreci\"}, {text: \"sözleşme şartları\"}]",
+            sql_query: "MATCH (e:Employee {id: '12345'})-[:HAS_CONTRACT]->(c:Contract) RETURN c.expiryDate"
         },
         {
             id: "sample3",
@@ -59,7 +72,13 @@ function generateSampleData() {
             feedback: null,
             hidden: true,
             user: "kullanici3",
-            datetime: "2023-10-18 09:45:12"
+            datetime: "2023-10-18 09:45:12",
+            // New fields
+            agentHistoryFilteredData: "[{_id=67f7ed72d93f8208ba752ea5, conversationId=1c352b10-82f7-4e71-a654-59e73e574634, uuid=50704a08-1626-11f0-ae95-0242ac150042, userName=kullanici3, timestamp=1744301426, RDate=Thu Apr 10 19:10:26 TRT 2025, messages=[{role=user, content=İzin talebinde nasıl bulunabilirim?}, {role=assistant, content=İzin talebinde bulunmak için:\\n1. Çalışan portalına giriş yapın\\n2. 'İzin Talepleri' bölümüne gidin\\n3. 'Yeni İzin Talebi' butonuna tıklayın\\n4. Tarih ve izin türünü seçin\\n5. Onay için gönderin}], type=leave-request}]",
+            contract_ids: "[]",
+            document_ids: "[\"DOC-789\"]",
+            entitySuggesterData: "[{text: \"izin talep formu\"}, {text: \"izin hakkı sorgula\"}, {text: \"izin takvimi\"}]",
+            sql_query: "MATCH (e:Employee {id: '12345'})-[:HAS_BENEFITS]->(b:Benefits) RETURN b.vacationDays"
         },
         {
             id: "sample4",
@@ -77,7 +96,13 @@ function generateSampleData() {
             feedback: null,
             hidden: false,
             user: "kullanici4",
-            datetime: "2023-10-17 11:20:15"
+            datetime: "2023-10-17 11:20:15",
+            // New fields
+            agentHistoryFilteredData: "[]",
+            contract_ids: "[]",
+            document_ids: "[]",
+            entitySuggesterData: "[]",
+            sql_query: "MATCH (c:Contract) WHERE c.status = 'sonlandı' RETURN count(c)"
         },
         {
             id: "sample5",
@@ -97,8 +122,15 @@ function generateSampleData() {
             feedback: "positive",
             hidden: false,
             user: "kullanici5",
-            datetime: "2023-10-16 09:05:22"
+            datetime: "2023-10-16 09:05:22",
+            // New fields with complex sample
+            agentHistoryFilteredData: "[{_id=67f7ed72d93f8208ba752ea5, conversationId=1c352b10-82f7-4e71-a654-59e73e574612, uuid=50704a08-1626-11f0-ae95-0242ac150056, userName=kullanici5, timestamp=1744301426, RDate=Thu Apr 10 19:10:26 TRT 2025, messages=[{role=user, content=Kaç gün hastalık iznim kaldı?}, {role=assistant, content=Bu yıl için 7 gün hastalık izniniz kalmıştır. Toplam 10 gün hakkınız vardı ve şimdiye kadar 3 gün kullandınız.}, {role=user, content=Bu izinler ne zaman sona eriyor?}, {role=assistant, content=Hastalık izinleriniz takvim yılı sonunda, 31 Aralık 2023 tarihinde sona erecektir. Kullanılmayan izinler bir sonraki yıla devredilmez.}], type=sick-leave}]",
+            contract_ids: "[\"CT-006\", \"CT-007\", \"CT-008\", \"CT-009\"]",
+            document_ids: "[\"DOC-321\", \"DOC-654\", \"DOC-987\"]",
+            entitySuggesterData: "[{text: \"hastalık izni talebi oluştur\"}, {text: \"son izinlerimi göster\"}, {text: \"izin politikası nedir\"}]",
+            sql_query: "MATCH (e:Employee {id: '12345'})-[:HAS_BENEFITS]->(b:Benefits) RETURN b.sickDaysRemaining"
         },
+        // Add more sample items if needed, following the same pattern
         {
             id: "sample6",
             schema: "Mukavele",
@@ -115,25 +147,34 @@ function generateSampleData() {
             feedback: "positive",
             hidden: false,
             user: "kullanici6",
-            datetime: "2023-10-15 16:40:10"
+            datetime: "2023-10-15 16:40:10",
+            // New fields with real-looking data format from your paste sample
+            agentHistoryFilteredData: "[{_id=67f7ed72d93f8208ba752ef6, conversationId=1c352b10-82f7-4e71-a654-59e73e574690, uuid=50704a08-1626-11f0-ae95-0242ac150076, userName=kullanici6, timestamp=1744301426, RDate=Thu Apr 10 19:10:26 TRT 2025, messages=[{role=user, content=Sözleşmemdeki avantajları görebilir miyim?}, {role=assistant, content=Sözleşmeniz aşağıdaki avantajları içermektedir:\\n- Sağlık sigortası (tıbbi masrafların %90'ını karşılar)\\n- Diş sigortası (diş işlemlerinin %80'ini karşılar)\\n- Göz sigortası (yıllık göz muayenesi ve gözlük/lens için 1500 TL)\\n- Bireysel emeklilik katkısı (maaşın %5'ine kadar eşleşme)\\n- 3 hafta ücretli izin\\n- 10 gün hastalık izni\\n- 5 gün kişisel izin\\n- Spor salonu üyeliği geri ödemesi (ayda 500 TL'ye kadar)}], type=contract-benefits}]",
+            contract_ids: "[\"CT-010\"]",
+            document_ids: "[\"DOC-444\"]",
+            entitySuggesterData: "[{text: \"sağlık sigortası detayları\"}, {text: \"bireysel emeklilik katkısı\"}, {text: \"spor salonu ödemesi nasıl yapılır\"}]",
+            sql_query: "MATCH (e:Employee {id: '12345'})-[:HAS_CONTRACT]->(c:Contract)-[:INCLUDES]->(b:Benefits) RETURN b"
         },
         {
             id: "sample7",
             schema: "Genel",
-            question: "BT desteği ofis saatleri nedir?",
+            question: "Veri bulunamadı örneği",
             conversation: [
-                { role: "user", message: "BT desteği ofis saatleri nedir?" },
-                { role: "assistant", message: "BT destek ekibi aşağıdaki saatlerde hizmet vermektedir:\nPazartesi-Cuma: 08:00 - 20:00\nCumartesi: 10:00 - 16:00\nPazar: Kapalı\n\nBu saatler dışındaki acil durumlar için dahili 5555 numaralı 7/24 destek hattını arayabilirsiniz." }
+                { role: "user", message: "Veri bulunamadı örneği" },
+                { role: "assistant", message: "Veri bulunamadı." }
             ],
-            suggestions: ["BT destek talebi oluştur", "acil BT desteği", "BT ekibi iletişim bilgileri"],
-            cypherQueries: [
-                "MATCH (d:Department {name: 'IT Support'})-[:HAS_HOURS]->(h:Hours) RETURN h",
-                "MATCH (d:Department {name: 'IT Support'})-[:HAS_CONTACT]->(c:Contact) RETURN c"
-            ],
+            suggestions: [],
+            cypherQueries: [],
             feedback: null,
             hidden: false,
             user: "kullanici7",
-            datetime: "2023-10-14 13:25:33"
+            datetime: "2023-10-14 13:25:33",
+            // Empty fields to test disabled buttons
+            agentHistoryFilteredData: "[]",
+            contract_ids: "[]",
+            document_ids: "[]",
+            entitySuggesterData: "[]",
+            sql_query: ""
         },
         {
             id: "sample8",
@@ -151,134 +192,28 @@ function generateSampleData() {
             feedback: "negative",
             hidden: false,
             user: "kullanici8",
-            datetime: "2023-10-13 10:10:05"
+            datetime: "2023-10-13 10:10:05",
+            // New fields
+            agentHistoryFilteredData: "[{_id=67f7ed72d93f8208ba752e88, conversationId=1c352b10-82f7-4e71-a654-59e73e574622, uuid=50704a08-1626-11f0-ae95-0242ac150085, userName=kullanici8, timestamp=1744301426, RDate=Thu Apr 10 19:10:26 TRT 2025, messages=[{role=user, content=Sözleşme durumu yürürlükte olan kaç tane sözleşme var?}, {role=assistant, content=Sözleşme durumu \"yürürlükte\" olan sözleşmelerin sayısını kontrol ediyorum. Sistem kayıtlarına göre şu anda toplam 243 adet yürürlükte olan sözleşme bulunmaktadır.}], type=contract-count}]",
+            contract_ids: "[\"CT-011\", \"CT-012\", \"CT-013\", \"CT-014\", \"CT-015\"]",
+            document_ids: "[\"DOC-111\", \"DOC-222\", \"DOC-333\"]",
+            entitySuggesterData: "[{text: \"yakında sona erecek sözleşmeler\"}, {text: \"departmanlara göre sözleşmeler\"}, {text: \"son 6 ayda imzalanan sözleşmeler\"}]",
+            sql_query: "MATCH (c:Contract) WHERE c.status = 'yürürlükte' RETURN count(c)"
         },
         {
-            id: "sample9",
-            schema: "Mesai",
-            question: "Bu yılki resmi tatil günleri nelerdir?",
-            conversation: [
-                { role: "user", message: "Bu yılki resmi tatil günleri nelerdir?" },
-                { role: "assistant", message: "Bu yılki resmi tatil günleri şunlardır:\n- Yılbaşı: 1 Ocak\n- Ulusal Egemenlik ve Çocuk Bayramı: 23 Nisan\n- Emek ve Dayanışma Günü: 1 Mayıs\n- Ramazan Bayramı: 21-23 Nisan\n- Gençlik ve Spor Bayramı: 19 Mayıs\n- Kurban Bayramı: 28 Haziran - 1 Temmuz\n- Demokrasi ve Milli Birlik Günü: 15 Temmuz\n- Zafer Bayramı: 30 Ağustos\n- Cumhuriyet Bayramı: 29 Ekim" }
-            ],
-            suggestions: ["gelecek yılın tatil takvimi", "hafta sonuna denk gelen tatiller", "tatil günleri izin talebi"],
-            cypherQueries: [
-                "MATCH (h:Holiday)-[:IN_YEAR]->(y:Year {year: 2023}) RETURN h ORDER BY h.date",
-                "MATCH (h:Holiday)-[:IN_YEAR]->(y:Year {year: 2023}) WHERE h.date.dayOfWeek IN [6, 7] RETURN h"
-            ],
-            feedback: "positive",
-            hidden: false,
-            user: "kullanici9",
-            datetime: "2023-10-12 15:55:40"
+            _id: {"$oid": "67f81929b2f94f5f67a26c4b"},
+            RDate: {"$date": "2025-04-10T19:16:57.390Z"},
+            agentHistoryFilteredData: "[{_id=67f81aeab2f94f5f67a26c4f, conversationId=d2513ed9-4f30-48c5-979f-ec2f1f800ae9, uuid=6a54a30e-1641-11f0-b0d8-f6cafc3fedbf, userName=icucak, timestamp=1744313066, RDate=Thu Apr 10 22:24:26 TRT 2025, messages=[{role=user, content=Mukavele sisteminden örnek getirebilir misin}, {role=assistant, content=}, {role=user, content=Oluşturduğunuz Cypher sorgusu hatalıydı. Hatayı düzeltip tekrar aynı formatta cevabı ver. Şu hatayı aldım:Maksimum yeniden deneme sayısına ulaşıldı (3). Son hata: Cannot run an empty query}, {role=assistant, content=MATCH (cl:Client {id:1718})-[:CONTAINS]->(m:Matter {rsId:'0df19089-3951-4e2b-be14-db3b9a90651c'})-[:HAS_CONTRACT]->(c:Contract)\nRETURN c.contractId, c.contractNumber, c.name}], type=cypher-generator, groupId=66c7e1ba-1641-11f0-b0d8-f6cafc3fedbf, botVersion=v2}]",
+            contract_ids: "[]",
+            conversationId: "d2513ed9-4f30-48c5-979f-ec2f1f800ae9",
+            document_ids: "[]",
+            entitySuggesterData: "[{_id=67f81ae6b2f94f5f67a26c4d, conversationId=d2513ed9-4f30-48c5-979f-ec2f1f800ae9, userMessage=Mukavele sisteminden örnek getirebilir misin, suggestion=null, response=null, cheet=null, RDate=Thu Apr 10 22:24:22 TRT 2025}]",
+            messages: "[{role=user, content=EPC ile EPCM arasındaki farklar nelerdir?}, {role=assistant, content=Bu konuda detaylı bir bilgi veremem, ancak EPC (Mühendislik, Tedarik ve İnşaat) ile EPCM (Mühendislik, Tedarik, İnşaat Yönetimi) arasındaki farklar genellikle proje sahipliğindeki sorumluluk ve yönetim şekliyle ilgilidir. EPC, yüklenicinin tüm projeyi üstlendiği bir modeli ifade ederken, EPCM modelinde mühendislik ve yönetim hizmetleri sağlanır ancak proje sahibi daha fazla kontrol ve sorumluluğa sahiptir. Proje yönetimi veya belge yönetim sistemi konularında yardımcı olabilirim.}, {role=user, content=Mukavele sisteminden örnek getirebilir misin}, {role=assistant, content=\n<body>\n    <h3>Mukavele Örnekleri</h3>\n    <table border=\"1\" cellpadding=\"5\" cellspacing=\"0\">\n        <thead>\n            <tr>\n                <th>Sözleşme Numarası</th>\n                <th>Sözleşme Adı</th>\n            </tr>\n        </thead>\n        <tbody>\n            <tr>\n                <td>SASA513</td>\n                <td>Cips Silo Soğutucu Satın Alım Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA2948</td>\n                <td>Satın Alma Siparişi</td>\n            </tr>\n            <tr>\n                <td>SASA3041</td>\n                <td>Tedarik Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA3039</td>\n                <td>Tedarik Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA2997</td>\n                <td>Sipariş Formu</td>\n            </tr>\n            <tr>\n                <td>SASA3122</td>\n                <td>Tedarik Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA2947</td>\n                <td>Tedarik Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA3140</td>\n                <td>Çarter Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA3070</td>\n                <td>Tedarik Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA3156</td>\n                <td>Sipariş Formu</td>\n            </tr>\n            <tr>\n                <td>SASA3121</td>\n                <td>Satın Alma Siparişi</td>\n            </tr>\n            <tr>\n                <td>SASA3019</td>\n                <td>Bakım Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA3081</td>\n                <td>Satın Alma Siparişi</td>\n            </tr>\n            <tr>\n                <td>SASA3118</td>\n                <td>Veri Yok</td>\n            </tr>\n            <tr>\n                <td>SASA2932</td>\n                <td>Tedarik Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA3109</td>\n                <td>Gizlilik Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA3071</td>\n                <td>Tedarik Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA2998</td>\n                <td>Sipariş Formu</td>\n            </tr>\n            <tr>\n                <td>SASA3092</td>\n                <td>Satın Alma Sipariş Formu</td>\n            </tr>\n            <tr>\n                <td>SASA2933</td>\n                <td>Satın Alma Siparişi</td>\n            </tr>\n            <tr>\n                <td>SASA3139</td>\n                <td>Tedarik Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA3022</td>\n                <td>Tedarik Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA3144</td>\n                <td>Tedarik Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA3084</td>\n                <td>Tedarik Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA2971</td>\n                <td>Veri Yok</td>\n            </tr>\n            <tr>\n                <td>SASA3163</td>\n                <td>Tedarik Sözleşmesi</td>\n            </tr>\n            <tr>\n                <td>SASA3075</td>\n                <td>Veri Yok</td>\n            </tr>\n            <tr>\n                <td>SASA3080</td>\n                <td>Confidentiality and Limited Use Agreement</td>\n            </tr>\n            <tr>\n                <td>SASA3030</td>\n                <td>Veri Yok</td>\n            </tr>\n            <tr>\n                <td>SASA3056</td>\n                <td>Tedarik Sözleşmesi</td>\n            </tr>\n        </tbody>\n    </table>\n</body>}]",
+            sql_query: null,
+            timestamp: 1744312617,
+            userName: "icucak",
+            uuid: "5261ea50-1640-11f0-b0d8-f6cafc3fedbf"
         },
-        {
-            id: "sample10",
-            schema: "Mukavele",
-            question: "2025 yılında sonlanacak sözleşmeleri gösterir misin?",
-            conversation: [
-                { role: "user", message: "2025 yılında sonlanacak sözleşmeleri gösterir misin?" },
-                { role: "assistant", message: "2025 yılında sona erecek sözleşmeleri kontrol ediyorum. Sistemde 2025 yılında sona erecek toplam 45 sözleşme bulunmaktadır. Bunların listesini görüntülemek ister misiniz?" }
-            ],
-            suggestions: ["2025'te sonlanacak sözleşmelerin listesi", "yenileme planlaması", "sözleşme yürürlük tarihleri"],
-            cypherQueries: [
-                "MATCH (c:Contract) WHERE c.expiryDate >= date('2025-01-01') AND c.expiryDate <= date('2025-12-31') RETURN c",
-                "MATCH (c:Contract) WHERE c.expiryDate >= date('2025-01-01') AND c.expiryDate <= date('2025-12-31') RETURN count(c)"
-            ],
-            feedback: null,
-            hidden: true,
-            user: "kullanici10",
-            datetime: "2023-10-11 14:30:18"
-        },
-        {
-            id: "sample11",
-            schema: "Mukavele",
-            question: "ABC Ltd. ile yapılan sözleşmeleri listeler misin?",
-            conversation: [
-                { role: "user", message: "ABC Ltd. ile yapılan sözleşmeleri listeler misin?" },
-                { role: "assistant", message: "ABC Ltd. ile yapılan sözleşmeleri kontrol ediyorum. Sistemde ABC Ltd. ile yapılmış 12 adet sözleşme bulunmaktadır. İşte bu sözleşmelerin özeti:\n\n1. Hizmet Alım Sözleşmesi - 15/03/2022 (Yürürlükte)\n2. Gizlilik Sözleşmesi - 15/03/2022 (Yürürlükte)\n3. Yazılım Lisans Sözleşmesi - 01/06/2022 (Yürürlükte)\n4. Bakım Sözleşmesi - 01/07/2022 (Yürürlükte)\n5. Danışmanlık Hizmetleri - 15/10/2022 (Yürürlükte)\n6. Ek Protokol No.1 - 10/12/2022 (Yürürlükte)\n7. Veri İşleme Sözleşmesi - 01/01/2023 (Yürürlükte)\n8. Tedarik Sözleşmesi - 15/02/2023 (Sonlandı)\n9. Personel Kiralama - 01/04/2023 (Sonlandı)\n10. Ek Protokol No.2 - 15/05/2023 (Yürürlükte)\n11. Teknik Destek Sözleşmesi - 01/07/2023 (Yürürlükte)\n12. Eğitim Hizmetleri - 15/09/2023 (Yürürlükte)" }
-            ],
-            suggestions: ["ABC Ltd. son 6 aydaki sözleşmeler", "ABC Ltd. projeler", "ABC Ltd. yenileme tarihleri"],
-            cypherQueries: [
-                "MATCH (c:Contract)-[:WITH_COMPANY]->(comp:Company {name: 'ABC Ltd.'}) RETURN c ORDER BY c.startDate DESC",
-                "MATCH (c:Contract)-[:WITH_COMPANY]->(comp:Company {name: 'ABC Ltd.'}) WHERE c.status = 'yürürlükte' RETURN count(c)"
-            ],
-            feedback: "positive",
-            hidden: false,
-            user: "kullanici11",
-            datetime: "2023-10-10 11:15:22"
-        },
-        {
-            id: "sample12",
-            schema: "Mesai",
-            question: "Geçen ayki fazla mesailerimi gösterir misin?",
-            conversation: [
-                { role: "user", message: "Geçen ayki fazla mesailerimi gösterir misin?" },
-                { role: "assistant", message: "Geçen ay (Eylül 2023) yaptığınız fazla mesailer şu şekildedir:\n\n5 Eylül 2023: 2 saat\n12 Eylül 2023: 1.5 saat\n19 Eylül 2023: 3 saat\n26 Eylül 2023: 2 saat\n\nToplam: 8.5 saat fazla mesai" }
-            ],
-            suggestions: ["fazla mesai ödemeleri", "bu ayki planlanan mesailer", "fazla mesai talep formu"],
-            cypherQueries: [
-                "MATCH (e:Employee {id: '12345'})-[:WORKED]->(o:Overtime) WHERE o.date >= date('2023-09-01') AND o.date <= date('2023-09-30') RETURN o ORDER BY o.date",
-                "MATCH (e:Employee {id: '12345'})-[:WORKED]->(o:Overtime) WHERE o.date >= date('2023-09-01') AND o.date <= date('2023-09-30') RETURN sum(o.hours)"
-            ],
-            feedback: null,
-            hidden: false,
-            user: "kullanici12",
-            datetime: "2023-10-09 09:23:18"
-        },
-        {
-            id: "sample13",
-            schema: "Mukavele",
-            question: "Son 30 günde imzalanan sözleşmeleri listeler misin?",
-            conversation: [
-                { role: "user", message: "Son 30 günde imzalanan sözleşmeleri listeler misin?" },
-                { role: "assistant", message: "Son 30 günde imzalanan sözleşmeleri kontrol ediyorum. Son 30 gün içinde imzalanan 8 adet sözleşme bulunuyor:\n\n1. DEF A.Ş. - Hizmet Alım Sözleşmesi (26/09/2023)\n2. GHI Holding - Danışmanlık Sözleşmesi (28/09/2023)\n3. JKL Ltd. - Yazılım Lisans Anlaşması (02/10/2023)\n4. MNO A.Ş. - Gizlilik Sözleşmesi (05/10/2023)\n5. PQR Teknoloji - Bakım Anlaşması (09/10/2023)\n6. STU Sanayi - Tedarik Sözleşmesi (12/10/2023)\n7. VWX İnşaat - Proje Sözleşmesi (15/10/2023)\n8. YZ Elektrik - Hizmet Sözleşmesi (18/10/2023)" }
-            ],
-            suggestions: ["sözleşme detayları", "imza sürecindeki sözleşmeler", "sözleşme özet raporu"],
-            cypherQueries: [
-                "MATCH (c:Contract) WHERE c.signDate >= date() - duration('P30D') RETURN c ORDER BY c.signDate DESC",
-                "MATCH (c:Contract) WHERE c.signDate >= date() - duration('P30D') RETURN count(c)"
-            ],
-            feedback: "positive",
-            hidden: false,
-            user: "kullanici13",
-            datetime: "2023-10-08 16:45:30"
-        },
-        {
-            id: "sample14",
-            schema: "Genel",
-            question: "Sistem ne zaman bakıma girecek?",
-            conversation: [
-                { role: "user", message: "Sistem ne zaman bakıma girecek?" },
-                { role: "assistant", message: "Planlanan sistem bakımı bu hafta sonu, 22 Ekim 2023 Pazar günü saat 02:00 - 06:00 arasında gerçekleştirilecektir. Bu süre zarfında sistemin kullanılamayacağını ve tüm açık işlemlerin önceden kaydedilmesi gerektiğini hatırlatırız." }
-            ],
-            suggestions: ["bakım öncesi yapılması gerekenler", "bakım sırasında acil destek", "gelecek bakım tarihleri"],
-            cypherQueries: [
-                "MATCH (m:Maintenance) WHERE m.date > date() RETURN m ORDER BY m.date LIMIT 1",
-                "MATCH (m:Maintenance) WHERE date(m.date) = date('2023-10-22') RETURN m"
-            ],
-            feedback: null,
-            hidden: false,
-            user: "kullanici14",
-            datetime: "2023-10-07 10:35:12"
-        },
-        {
-            id: "sample15",
-            schema: "Mukavele",
-            question: "23 numaralı müşterinin sözleşmelerini getir",
-            conversation: [
-                { role: "user", message: "23 numaralı müşterinin sözleşmelerini getir" },
-                { role: "assistant", message: "23 numaralı müşteri (XYZ Teknoloji A.Ş.) ile ilgili sözleşmeleri kontrol ediyorum. Bu müşteri ile ilgili 5 sözleşme bulunmaktadır:\n\n1. Çerçeve Sözleşme #A-1023 (15/01/2022 - 15/01/2025)\n2. Yazılım Lisans Anlaşması #S-298 (01/02/2022 - 01/02/2024)\n3. Bakım ve Destek Sözleşmesi #M-76 (01/03/2022 - 01/03/2024)\n4. Ek Protokol #1 - API Entegrasyonu (15/07/2022 - 15/01/2025)\n5. Veri İşleme Sözleşmesi #D-42 (10/09/2022 - 15/01/2025)" }
-            ],
-            suggestions: ["23 numaralı müşteri detayları", "sözleşmelerin durumu", "yenileme tarihleri"],
-            cypherQueries: [
-                "MATCH (cl:Client {id:23})-[:CONTAINS]->(m:Matter)-[:HAS_CONTRACT]->(c:Contract) RETURN c.contractId, c.contractNumber, c.name",
-                "MATCH (cl:Client {id:23})-[:CONTAINS]->(m:Matter)-[:HAS_CONTRACT]->(c:Contract) WHERE c.status = 'yürürlükte' RETURN count(c)"
-            ],
-            feedback: null,
-            hidden: false,
-            user: "kullanici15",
-            datetime: "2023-10-06 13:20:45"
-        }
     ];
 }
 
@@ -498,6 +433,7 @@ function initializeDebugMode() {
 }
 
 // Modified connectToMongoDB function that uses sample data when in debug mode
+// Modified connectToMongoDB function that uses sample data when in debug mode
 async function connectToMongoDB(page = 0) {
     // If debug mode is active, use sample data instead of real API call
     if (debugMode) {
@@ -530,6 +466,26 @@ async function connectToMongoDB(page = 0) {
         if (connectionText) {
             connectionText.textContent = `DEBUG MODE: ${sampleData.length} sample records loaded`;
         }
+
+        // Preprocess the data to add button enablement flags
+        sampleData.forEach(item => {
+            // Add flags for whether buttons should be enabled
+            item.hasAgentHistoryData = item.agentHistoryFilteredData &&
+                item.agentHistoryFilteredData !== "[]" &&
+                item.agentHistoryFilteredData.length > 2;
+
+            item.hasContractIds = item.contract_ids &&
+                item.contract_ids !== "[]" &&
+                item.contract_ids.length > 2;
+
+            item.hasDocumentIds = item.document_ids &&
+                item.document_ids !== "[]" &&
+                item.document_ids.length > 2;
+
+            item.hasEntitySuggesterData = item.entitySuggesterData &&
+                item.entitySuggesterData !== "[]" &&
+                item.entitySuggesterData.length > 2;
+        });
 
         // Set data and pagination
         data = sampleData;
@@ -646,8 +602,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeDebugMode();
 });
 
-// Update the mock API functions to respect debug mode
-// This allows testing schema changes, feedback, etc. without a real backend
 
 // Modified setSchema function with debug mode support
 async function setSchema(id, schema) {
@@ -854,3 +808,466 @@ async function handleToggleHidden(id) {
     // Apply filters to update UI
     applyFilters();
 }
+
+// Add this function to your debug module
+function addDebugControls() {
+    const debugPanel = document.getElementById('debug-panel');
+    if (!debugPanel) return;
+
+    // Add a debug log button
+    const logButton = document.createElement('button');
+    logButton.textContent = 'Log Current Data';
+    logButton.style.marginTop = '10px';
+    logButton.addEventListener('click', () => {
+        console.log("Current data:", data);
+        console.log("Filtered data:", filteredData);
+    });
+
+    debugPanel.appendChild(logButton);
+
+    // Add a parse test button
+    const parseTestButton = document.createElement('button');
+    parseTestButton.textContent = 'Test Parse Sample';
+    parseTestButton.style.marginTop = '5px';
+    parseTestButton.addEventListener('click', () => {
+        // Create a test sample based on your real data
+        const testSample = {
+            _id: {"$oid": "67f81929b2f94f5f67a26c4b"},
+            RDate: {"$date": "2025-04-10T19:16:57.390Z"},
+            agentHistoryFilteredData: "[{_id=67f81aeab2f94f5f67a26c4f, conversationId=d2513ed9-4f30-48c5-979f-ec2f1f800ae9, uuid=6a54a30e-1641-11f0-b0d8-f6cafc3fedbf, userName=icucak, timestamp=1744313066, messages=[{role=user, content=Test message}]}]",
+            contract_ids: "[]",
+            conversationId: "d2513ed9-4f30-48c5-979f-ec2f1f800ae9",
+            document_ids: "[]",
+            entitySuggesterData: "[]",
+            messages: "[{role=user, content=Test message}, {role=assistant, content=Test response}]",
+            sql_query: null,
+            timestamp: 1744312617,
+            userName: "testuser",
+            uuid: "5261ea50-1640-11f0-b0d8-f6cafc3fedbf"
+        };
+
+        // Try to parse it
+        const parsedItems = convertMongoDataToAppFormat([testSample]);
+        console.log("Parse test result:", parsedItems);
+    });
+
+    debugPanel.appendChild(parseTestButton);
+}
+// Patch the convertMongoDataToAppFormat function to be more robust
+// Enhanced debugging for MongoDB data parsing
+(function() {
+    console.log("Debug mode activated for MongoDB data parsing");
+
+    // Create a debug panel to see raw data
+    function createDebugPanel() {
+        const debugPanel = document.createElement('div');
+        debugPanel.id = 'debug-panel';
+        debugPanel.style.cssText = 'position: fixed; bottom: 0; right: 0; width: 300px; height: 400px; background: #1e1e1e; color: #00ff00; padding: 10px; overflow: auto; z-index: 9999; font-family: monospace; font-size: 12px; border: 1px solid #333; resize: both;';
+        debugPanel.innerHTML = '<h3>Debug Panel</h3><button id="debug-close" style="position:absolute;top:5px;right:5px;">×</button><div id="debug-content"></div>';
+        document.body.appendChild(debugPanel);
+
+        document.getElementById('debug-close').addEventListener('click', () => {
+            debugPanel.style.display = 'none';
+        });
+
+        return debugPanel;
+    }
+
+    // Create a toggle button
+    const debugToggle = document.createElement('button');
+    debugToggle.textContent = 'Debug';
+    debugToggle.style.cssText = 'position: fixed; bottom: 10px; right: 10px; z-index: 10000; background: #333; color: #fff; border: none; padding: 5px 10px; cursor: pointer;';
+    document.body.appendChild(debugToggle);
+
+    let debugPanel;
+    debugToggle.addEventListener('click', () => {
+        if (!debugPanel) {
+            debugPanel = createDebugPanel();
+        } else {
+            debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+        }
+    });
+
+    // Override fetch to capture MongoDB data
+    const originalFetch = window.fetch;
+    window.fetch = async function(...args) {
+        const response = await originalFetch(...args);
+
+        // Clone the response so we can read it multiple times
+        const clone = response.clone();
+
+        try {
+            // Only process API responses
+            if (args[0].includes('/api/conversations')) {
+                const data = await clone.json();
+
+                // Log to console
+                console.log('MongoDB API Response:', data);
+
+                // Add to debug panel if it exists
+                if (debugPanel && debugPanel.style.display !== 'none') {
+                    const debugContent = document.getElementById('debug-content');
+
+                    // Create a collapsible section
+                    const section = document.createElement('div');
+                    section.innerHTML = `
+            <p style="margin: 5px 0; cursor: pointer; border-bottom: 1px solid #444; padding-bottom: 3px;">
+              ${new Date().toLocaleTimeString()} - ${args[0].split('?')[0]}
+              <span style="float: right">▼</span>
+            </p>
+            <pre style="display: none; max-height: 200px; overflow: auto; background: #252525; padding: 5px; margin: 0 0 10px 0;">${JSON.stringify(data, null, 2)}</pre>
+          `;
+
+                    // Toggle collapse
+                    section.querySelector('p').addEventListener('click', (e) => {
+                        const pre = section.querySelector('pre');
+                        pre.style.display = pre.style.display === 'none' ? 'block' : 'none';
+                        e.target.querySelector('span').textContent = pre.style.display === 'none' ? '▼' : '▲';
+                    });
+
+                    debugContent.prepend(section);
+                }
+            }
+        } catch (e) {
+            console.error('Error processing debug data:', e);
+        }
+
+        // Return original response
+        return response;
+    };
+
+    // Enhanced message parsing function
+    window.debugParseMessages = function(messagesStr) {
+        if (!messagesStr) return null;
+
+        console.log('Attempting to parse messages:', messagesStr.substring(0, 100) + '...');
+
+        // Try multiple parsing methods and show which one worked
+        let result = null;
+        let method = 'none';
+
+        try {
+            // Method 1: Direct JSON parse
+            try {
+                result = JSON.parse(messagesStr);
+                method = 'direct-json';
+            } catch (e) {
+                // Method 2: Clean and parse
+                const cleaned = messagesStr
+                    .replace(/'/g, '"')
+                    .replace(/(\w+)=/g, '"$1":');
+
+                try {
+                    result = JSON.parse(cleaned);
+                    method = 'cleaned-json';
+                } catch (e2) {
+                    // Method 3: Regex extraction
+                    const matches = messagesStr.match(/\{role=(.*?), content=(.*?)(?=\}, \{|\}$)/gs);
+                    if (matches) {
+                        result = matches.map(m => {
+                            const roleMatch = m.match(/role=([^,]+)/);
+                            const contentMatch = m.match(/content=(.+)/s);
+                            return {
+                                role: roleMatch ? roleMatch[1].trim() : 'unknown',
+                                content: contentMatch ? contentMatch[1].trim() : ''
+                            };
+                        });
+                        method = 'regex';
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('All parsing methods failed:', e);
+        }
+
+        console.log(`Parsing complete using method: ${method}`, result);
+        return { result, method };
+    };
+
+    // Replace the original parseMessages function
+    const originalParseMessages = window.parseMessages;
+    window.parseMessages = function(messagesStr) {
+        try {
+            console.log('Parsing messages with robustified function');
+
+            // Handle non-string input
+            if (!messagesStr) return [
+                { role: 'user', message: 'No messages available' }
+            ];
+
+            if (typeof messagesStr !== 'string') {
+                console.warn('Messages is not a string type:', typeof messagesStr);
+                return [
+                    { role: 'user', message: 'Message in non-string format' }
+                ];
+            }
+
+            // Case 1: Try parsing as JSON directly
+            try {
+                const parsed = JSON.parse(messagesStr);
+                console.log('Successfully parsed as direct JSON');
+
+                if (Array.isArray(parsed)) {
+                    return parsed.map(msg => ({
+                        role: msg.role || 'unknown',
+                        message: msg.content || msg.message || 'No content'
+                    }));
+                }
+            } catch (e) {
+                console.log('Direct JSON parse failed, trying other methods');
+            }
+
+            // Case 2: It might be a Python-style dictionary string
+            const cleaned = messagesStr
+                .replace(/'/g, '"')
+                .replace(/(\w+)=/g, '"$1":')
+                .replace(/None/g, 'null')
+                .replace(/True/g, 'true')
+                .replace(/False/g, 'false');
+
+            try {
+                const parsed = JSON.parse(cleaned);
+                console.log('Successfully parsed as cleaned JSON');
+
+                if (Array.isArray(parsed)) {
+                    return parsed.map(msg => ({
+                        role: msg.role || 'unknown',
+                        message: msg.content || msg.message || 'No content'
+                    }));
+                }
+            } catch (e) {
+                console.log('Cleaned JSON parse failed, trying regex');
+            }
+
+            // Case 3: Extract with regex
+            const messages = [];
+
+            // Match each role=XXX, content=YYY pattern
+            const regex = /\{role=([^,]+), content=([^}]+)\}/g;
+            let match;
+
+            while ((match = regex.exec(messagesStr)) !== null) {
+                messages.push({
+                    role: match[1].trim(),
+                    message: match[2].trim().replace(/^['"]|['"]$/g, '')
+                });
+            }
+
+            if (messages.length > 0) {
+                console.log('Successfully extracted messages with regex');
+                return messages;
+            }
+
+            // Case 4: Try more aggressive regex
+            const roleContentPairs = messagesStr.match(/role=(.*?)(?:,|$).*?content=(.*?)(?:,\s*\w+=|\}|$)/gs);
+
+            if (roleContentPairs && roleContentPairs.length > 0) {
+                const extractedMessages = [];
+
+                for (const pair of roleContentPairs) {
+                    const roleMatch = pair.match(/role=([^,}]+)/);
+                    const contentMatch = pair.match(/content=([^,}]+)/);
+
+                    if (roleMatch && contentMatch) {
+                        extractedMessages.push({
+                            role: roleMatch[1].trim().replace(/^['"]|['"]$/g, ''),
+                            message: contentMatch[1].trim().replace(/^['"]|['"]$/g, '')
+                        });
+                    }
+                }
+
+                if (extractedMessages.length > 0) {
+                    console.log('Successfully extracted with aggressive regex');
+                    return extractedMessages;
+                }
+            }
+
+            console.warn('All parsing methods failed, returning default message');
+            return [
+                { role: 'user', message: 'Failed to parse messages' },
+                { role: 'assistant', message: 'The message format could not be parsed' }
+            ];
+
+        } catch (e) {
+            console.error('Critical error in parseMessages:', e);
+            return [
+                { role: 'user', message: 'Error parsing messages' },
+                { role: 'assistant', message: 'An error occurred while parsing the conversation' }
+            ];
+        }
+    };
+
+    // Add fix for rendering Markdown content
+    window.renderFormattedContent = function(content) {
+        // If the content is not a string, convert it
+        if (typeof content !== 'string') {
+            content = String(content || '');
+        }
+
+        // Replace markdown code blocks with HTML
+        content = content.replace(/```(\w*)\n([\s\S]*?)\n```/g,
+            '<pre><code class="language-$1">$2</code></pre>');
+
+        // Replace inline code
+        content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+        // Replace markdown links
+        content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+        // Replace newlines with <br>
+        content = content.replace(/\n/g, '<br>');
+
+        return content;
+    };
+
+    console.log("MongoDB data parsing debug helpers installed");
+})();
+(function() {
+    const originalConvert = window.convertMongoDataToAppFormat;
+
+    window.convertMongoDataToAppFormat = function(mongoData) {
+        console.log('Converting MongoDB data with patched function');
+
+        if (!mongoData || !Array.isArray(mongoData)) {
+            console.error('Invalid MongoDB data structure:', mongoData);
+            return [];
+        }
+
+        return mongoData.map(item => {
+            try {
+                // Handle messages in various formats
+                let parsedMessages = [];
+
+                if (item.messages) {
+                    try {
+                        parsedMessages = parseMessages(item.messages);
+                    } catch (e) {
+                        console.error('Error parsing messages:', e);
+                        parsedMessages = [
+                            { role: 'user', message: 'Error parsing conversation' }
+                        ];
+                    }
+                }
+
+                // Get first user message more reliably
+                let question = 'No question found';
+                try {
+                    if (parsedMessages.length > 0) {
+                        const userMsg = parsedMessages.find(m => m.role === 'user');
+                        if (userMsg) question = userMsg.message;
+                    }
+                } catch (e) {
+                    console.error('Error extracting question:', e);
+                }
+
+                // Process suggestions more safely
+                let suggestions = [];
+                try {
+                    if (item.entitySuggesterData) {
+                        if (typeof item.entitySuggesterData === 'string') {
+                            try {
+                                // Try direct JSON parse
+                                const parsed = JSON.parse(item.entitySuggesterData);
+                                if (Array.isArray(parsed)) {
+                                    suggestions = parsed.filter(Boolean).map(s =>
+                                        typeof s === 'string' ? s :
+                                            s.suggestion || s.text || JSON.stringify(s)
+                                    );
+                                }
+                            } catch (e) {
+                                // Try extracting with regex
+                                const matches = item.entitySuggesterData.match(/(suggestion|text)=([^,}]+)/g);
+                                if (matches) {
+                                    suggestions = matches.map(m => {
+                                        const value = m.split('=')[1].trim();
+                                        return value.replace(/^['"]|['"]$/g, '');
+                                    }).filter(Boolean);
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error processing suggestions:', e);
+                }
+
+                // Handle cypher queries better
+                let cypherQueries = [];
+                if (item.sql_query) {
+                    if (typeof item.sql_query === 'string') {
+                        cypherQueries = [item.sql_query];
+                    } else if (Array.isArray(item.sql_query)) {
+                        cypherQueries = item.sql_query;
+                    }
+                }
+
+                // Safely extract ID
+                const id = item._id?.$oid ||
+                    (typeof item._id === 'string' ? item._id : null) ||
+                    item.id ||
+                    item.uuid ||
+                    `temp-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+
+                // Better timestamp extraction
+                let timestamp = null;
+                if (item.timestamp) {
+                    timestamp = typeof item.timestamp === 'number' ?
+                        item.timestamp : parseInt(String(item.timestamp));
+                } else if (item.RDate && item.RDate.$date) {
+                    timestamp = new Date(item.RDate.$date).getTime();
+                } else if (item._id && item._id.$oid) {
+                    // Get timestamp from MongoDB ObjectId
+                    const objectIdTimestamp = parseInt(item._id.$oid.substring(0, 8), 16) * 1000;
+                    timestamp = objectIdTimestamp;
+                }
+
+                if (!timestamp || isNaN(timestamp)) {
+                    timestamp = Date.now();
+                }
+
+                const date = new Date(timestamp);
+                const formattedDate = isNaN(date.getTime()) ?
+                    'Invalid date' :
+                    date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+
+                return {
+                    id: id,
+                    schema: item.schema || '',
+                    question: question,
+                    conversation: parsedMessages,
+                    suggestions: suggestions,
+                    cypherQueries: cypherQueries,
+                    feedback: item.feedback || null,
+                    hidden: !!item.hidden,
+                    user: item.userName || item.user || 'Unknown',
+                    datetime: formattedDate,
+                    timestamp: timestamp,
+
+                    // Add additional data
+                    agentHistoryFilteredData: item.agentHistoryFilteredData || "[]",
+                    contractIds: item.contract_ids || "[]",
+                    documentIds: item.document_ids || "[]",
+                    entitySuggesterData: item.entitySuggesterData || "[]",
+
+                    // Add flags for button enabling
+                    hasAgentHistoryData: !!item.agentHistoryFilteredData &&
+                        item.agentHistoryFilteredData !== "[]" &&
+                        item.agentHistoryFilteredData.length > 5,
+                    hasContractIds: !!item.contract_ids &&
+                        item.contract_ids !== "[]" &&
+                        item.contract_ids.length > 5,
+                    hasDocumentIds: !!item.document_ids &&
+                        item.document_ids !== "[]" &&
+                        item.document_ids.length > 5,
+                    hasEntitySuggesterData: !!item.entitySuggesterData &&
+                        item.entitySuggesterData !== "[]" &&
+                        item.entitySuggesterData.length > 5
+                };
+            } catch (itemError) {
+                console.error('Error converting item:', itemError, item);
+                return null;
+            }
+        }).filter(Boolean); // Remove null items
+    };
+
+    console.log('Data conversion function patched');
+})();
