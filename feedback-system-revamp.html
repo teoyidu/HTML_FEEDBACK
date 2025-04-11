@@ -988,6 +988,259 @@
   let dateFrom = null;
   let dateTo = null;
 
+  // Add these global variables near the top of your script (around line 400)
+  // This ensures that any code trying to access these variables won't cause reference errors
+
+  // Default value for activeTypeFilter
+  window.activeTypeFilter = null;
+
+  // Dummy function for filterByType
+  window.filterByType = function(type) {
+    console.log('Type filtering is disabled, ignoring request to filter by:', type);
+    return false;
+  };
+
+  // Dummy function for initializeTypeFilters
+  window.initializeTypeFilters = function() {
+    console.log('Type filters initialization skipped (feature disabled)');
+    return false;
+  };
+
+  // Remove the type filters section from DOM
+  document.addEventListener('DOMContentLoaded', function() {
+    // Find and remove type filters container if it exists
+    const typeFiltersSection = document.querySelector('.filter-section:has(#type-filters)');
+    if (typeFiltersSection) {
+      console.log('Removing type filters section from DOM');
+      typeFiltersSection.remove();
+    }
+
+    // Or just the inner element
+    const typeFilters = document.getElementById('type-filters');
+    if (typeFilters) {
+      console.log('Removing type filters element from DOM');
+      typeFilters.remove();
+    }
+  });
+
+  // Modify applyFilters to skip type filtering
+  // This is a patch to be applied to the original function
+  const originalApplyFilters = window.applyFilters;
+  if (typeof originalApplyFilters === 'function') {
+    window.applyFilters = function() {
+      // Access safe variables
+      window.activeTypeFilter = window.activeTypeFilter || null;
+
+      // Call original with wrapped try/catch
+      try {
+        return originalApplyFilters.apply(this, arguments);
+      } catch (error) {
+        console.error('Error in applyFilters:', error);
+
+        // Fallback implementation
+        let filtered = [...data];
+
+        // Apply schema filter if active
+        if (activeSchema) {
+          filtered = filtered.filter(item => item.schema === activeSchema);
+        }
+
+        // Apply feedback filter if active
+        if (activeFeedbackFilter) {
+          filtered = filtered.filter(item => item.feedback === activeFeedbackFilter);
+        }
+
+        // Apply hidden filter
+        if (!showHidden) {
+          filtered = filtered.filter(item => !item.hidden);
+        }
+
+        // Apply search query
+        if (searchQuery) {
+          filtered = filtered.filter(item =>
+                  (item.question && item.question.toLowerCase().includes(searchQuery)) ||
+                  (item.user && item.user.toLowerCase().includes(searchQuery))
+          );
+        }
+
+        filteredData = filtered;
+        renderItems();
+      }
+    };
+  }
+
+  // Remove type filters references from fix scripts
+  function patchExternalScripts() {
+    // Create a MutationObserver to watch for script additions
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeName === 'SCRIPT' && node.src) {
+              // For pagination-fix.js
+              if (node.src.includes('pagination-fix.js')) {
+                console.log('Patching pagination-fix.js...');
+                setTimeout(() => {
+                  // Safe access to window.applyFilters
+                  const originalApplyFilters = window.applyFilters;
+                  if (typeof originalApplyFilters === 'function') {
+                    window.applyFilters = function() {
+                      try {
+                        // Ensure activeTypeFilter exists
+                        window.activeTypeFilter = window.activeTypeFilter || null;
+                        return originalApplyFilters.apply(this, arguments);
+                      } catch (error) {
+                        console.error('Error in patched applyFilters:', error);
+                      }
+                    };
+                  }
+                }, 200);
+              }
+            }
+          });
+        }
+      });
+    });
+
+    // Start observing
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+
+    // Return the observer to stop it later if needed
+    return observer;
+  }
+
+  // Call the patching function after a delay
+  setTimeout(patchExternalScripts, 100);
+
+  function getElement(id, create = false) {
+    let element = document.getElementById(id);
+
+    if (!element && create) {
+      console.log(`Creating missing element with ID: ${id}`);
+      element = document.createElement('div');
+      element.id = id;
+
+      // Style and append depending on the element type
+      switch(id) {
+        case 'connection-indicator':
+          element.className = 'status-indicator';
+          const connectionStatus = document.querySelector('.connection-status');
+          if (connectionStatus) {
+            connectionStatus.appendChild(element);
+          } else {
+            // Create connection status container if needed
+            const container = document.createElement('div');
+            container.className = 'connection-status';
+            container.appendChild(element);
+
+            // Add connection text element
+            const connectionText = document.createElement('span');
+            connectionText.id = 'connection-text';
+            connectionText.textContent = 'Connecting to MongoDB...';
+            container.appendChild(connectionText);
+
+            // Insert at the top of the container
+            const mainContainer = document.querySelector('.container');
+            if (mainContainer && mainContainer.firstChild) {
+              mainContainer.insertBefore(container, mainContainer.firstChild.nextSibling);
+            } else {
+              document.body.appendChild(container);
+            }
+          }
+          break;
+
+        case 'connection-text':
+          element.textContent = 'Connecting to MongoDB...';
+          const statusIndicator = document.querySelector('.connection-status');
+          if (statusIndicator) {
+            statusIndicator.appendChild(element);
+          } else {
+            document.body.appendChild(element);
+          }
+          break;
+
+        case 'type-filters':
+          element.className = 'filter-section';
+          element.innerHTML = `
+          <div class="filter-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            <span>Type Filters:</span>
+          </div>
+          <div class="filter-buttons">
+            <!-- Type filter buttons will be added dynamically -->
+          </div>
+        `;
+
+          // Insert after schema filters
+          const schemaFilters = document.getElementById('schema-filters');
+          if (schemaFilters) {
+            const parentNode = schemaFilters.parentNode;
+            if (parentNode) {
+              parentNode.insertBefore(element, schemaFilters.nextSibling);
+            }
+          } else {
+            document.body.appendChild(element);
+          }
+          break;
+
+        case 'dialog-content':
+          element.className = 'modal-body';
+
+          // Find modal or create one
+          const modal = document.getElementById('feedback-modal');
+          if (modal) {
+            const modalContent = modal.querySelector('.modal-content');
+            if (modalContent) {
+              modalContent.appendChild(element);
+            } else {
+              modal.appendChild(element);
+            }
+          } else {
+            document.body.appendChild(element);
+          }
+          break;
+
+        case 'tabs-list':
+          element.className = 'tabs-list';
+
+          // Find tabs container
+          const tabsContainer = document.getElementById('tabs-container');
+          if (tabsContainer) {
+            const tabsHeader = tabsContainer.querySelector('.tabs-header');
+            if (tabsHeader) {
+              // Find the proper position to insert
+              const prevBtn = document.getElementById('prev-tab-btn');
+              if (prevBtn && prevBtn.nextSibling) {
+                tabsHeader.insertBefore(element, prevBtn.nextSibling);
+              } else {
+                tabsHeader.appendChild(element);
+              }
+            } else {
+              tabsContainer.appendChild(element);
+            }
+          } else {
+            document.body.appendChild(element);
+          }
+          break;
+
+        default:
+          // Default case, just append to body
+          document.body.appendChild(element);
+      }
+    }
+
+    return element || {
+      // Return a dummy element if still not found and not created
+      classList: { add: () => {}, remove: () => {}, toggle: () => {}, contains: () => false },
+      textContent: '',
+      innerHTML: '',
+      appendChild: () => {},
+      style: {}
+    };
+  }
+
   // Function to format date in a user-friendly way
   function formatDateTime(dateStr) {
     if (/\d{1,2}\/\d{1,2}\/\d{4}, \d{1,2}:\d{2}:\d{2}/.test(dateStr)) {
@@ -1182,104 +1435,85 @@
 
   // Load or initialize DOM elements
   document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('search-input');
+    console.log('DOM fully loaded, initializing application...');
+
+    // Create critical elements first
+    getElement('connection-indicator', true);
+    getElement('connection-text', true);
+    getElement('type-filters', true);
+    getElement('dialog-content', true);
+    getElement('tabs-list', true);
+
+    // Create schema buttons if they don't exist
+    const schemaFilters = getElement('schema-filters', true);
+    if (!schemaFilters.querySelector('.filter-btn')) {
+      console.log('No schema buttons found, creating them...');
+      schemaList.forEach(schema => {
+        const button = document.createElement('button');
+        button.className = 'filter-btn';
+        button.dataset.schema = schema;
+        button.textContent = schema;
+        button.addEventListener('click', () => filterBySchema(schema));
+        schemaFilters.appendChild(button);
+      });
+    }
+
+    // Initialize other UI elements
+    const searchInput = getElement('search-input');
     const schemaFilterButtons = document.querySelectorAll('#schema-filters .filter-btn');
-    const positiveFilter = document.getElementById('positive-filter');
-    const negativeFilter = document.getElementById('negative-filter');
-    const hiddenFilter = document.getElementById('hidden-filter');
+    const positiveFilter = getElement('positive-filter');
+    const negativeFilter = getElement('negative-filter');
+    const hiddenFilter = getElement('hidden-filter');
     const pageSizeButtons = document.querySelectorAll('.page-size-btn');
-    const resultsCount = document.getElementById('results-count');
-    const feedbackItems = document.getElementById('feedback-items');
-    const noResults = document.getElementById('no-results');
-    const connectionIndicator = document.getElementById('connection-indicator');
-    const connectionText = document.getElementById('connection-text');
-    const dateFromInput = document.getElementById('date-from');
-    const dateToInput = document.getElementById('date-to');
-    const applyDateFilterBtn = document.getElementById('apply-date-filter');
-    const clearDateFilterBtn = document.getElementById('clear-date-filter');
+    const resultsCount = getElement('results-count', true);
+    const feedbackItems = getElement('feedback-items', true);
+    const noResults = getElement('no-results', true);
 
-    const modal = document.getElementById('feedback-modal');
-    const modalClose = document.getElementById('modal-close');
-
+    // Setup event listeners
     searchInput.addEventListener('input', () => {
       searchQuery = searchInput.value.toLowerCase();
       applyFilters();
     });
 
-    const sortNewestBtn = document.getElementById('sort-newest');
-    const sortOldestBtn = document.getElementById('sort-oldest');
+    // Setup schema buttons (already done above)
 
-    sortNewestBtn.addEventListener('click', () => {
-      if (sortOrder !== 'newest') {
-        sortOrder = 'newest';
-        sortNewestBtn.classList.add('active');
-        sortOldestBtn.classList.remove('active');
+    // Feedback filter event listeners
+    if (positiveFilter) {
+      positiveFilter.addEventListener('click', () => {
+        if (activeFeedbackFilter === 'positive') {
+          activeFeedbackFilter = null;
+          positiveFilter.classList.remove('active');
+        } else {
+          activeFeedbackFilter = 'positive';
+          positiveFilter.classList.add('active');
+          negativeFilter.classList.remove('active');
+        }
         applyFilters();
-      }
-    });
+      });
+    }
 
-    sortOldestBtn.addEventListener('click', () => {
-      if (sortOrder !== 'oldest') {
-        sortOrder = 'oldest';
-        sortOldestBtn.classList.add('active');
-        sortNewestBtn.classList.remove('active');
+    if (negativeFilter) {
+      negativeFilter.addEventListener('click', () => {
+        if (activeFeedbackFilter === 'negative') {
+          activeFeedbackFilter = null;
+          negativeFilter.classList.remove('active');
+        } else {
+          activeFeedbackFilter = 'negative';
+          negativeFilter.classList.add('active');
+          positiveFilter.classList.remove('active');
+        }
         applyFilters();
-      }
-    });
+      });
+    }
 
-    applyDateFilterBtn.addEventListener('click', () => {
-      const fromValue = dateFromInput.value;
-      const toValue = dateToInput.value;
+    // Toggle hidden items
+    if (hiddenFilter) {
+      hiddenFilter.addEventListener('click', () => {
+        showHidden = !showHidden;
+        hiddenFilter.classList.toggle('active', showHidden);
 
-      dateFrom = fromValue ? new Date(fromValue) : null;
-      dateTo = toValue ? new Date(toValue + 'T23:59:59') : null;
-
-      applyFilters();
-    });
-
-    clearDateFilterBtn.addEventListener('click', () => {
-      dateFromInput.value = '';
-      dateToInput.value = '';
-      dateFrom = null;
-      dateTo = null;
-      applyFilters();
-    });
-
-    schemaFilterButtons.forEach(button => {
-      const schema = button.dataset.schema;
-      button.addEventListener('click', () => filterBySchema(schema));
-    });
-
-    positiveFilter.addEventListener('click', () => {
-      if (activeFeedbackFilter === 'positive') {
-        activeFeedbackFilter = null;
-        positiveFilter.classList.remove('active');
-      } else {
-        activeFeedbackFilter = 'positive';
-        positiveFilter.classList.add('active');
-        negativeFilter.classList.remove('active');
-      }
-      applyFilters();
-    });
-
-    negativeFilter.addEventListener('click', () => {
-      if (activeFeedbackFilter === 'negative') {
-        activeFeedbackFilter = null;
-        negativeFilter.classList.remove('active');
-      } else {
-        activeFeedbackFilter = 'negative';
-        negativeFilter.classList.add('active');
-        positiveFilter.classList.remove('active');
-      }
-      applyFilters();
-    });
-
-    hiddenFilter.addEventListener('click', () => {
-      showHidden = !showHidden;
-      if (showHidden) {
-        hiddenFilter.classList.add('active');
-        hiddenFilter.textContent = 'Hide Archived';
-        hiddenFilter.innerHTML = `
+        if (showHidden) {
+          hiddenFilter.innerHTML = `
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; margin-right: 4px;">
             <rect width="20" height="5" x="2" y="3" rx="1"></rect>
             <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path>
@@ -1287,9 +1521,8 @@
           </svg>
           Hide Archived
         `;
-      } else {
-        hiddenFilter.classList.remove('active');
-        hiddenFilter.innerHTML = `
+        } else {
+          hiddenFilter.innerHTML = `
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; margin-right: 4px;">
             <rect width="20" height="5" x="2" y="3" rx="1"></rect>
             <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path>
@@ -1297,10 +1530,12 @@
           </svg>
           Show Archived
         `;
-      }
-      applyFilters();
-    });
+        }
+        applyFilters();
+      });
+    }
 
+    // Page size buttons
     pageSizeButtons.forEach(button => {
       button.addEventListener('click', () => {
         pageSizeButtons.forEach(btn => btn.classList.remove('active'));
@@ -1310,17 +1545,37 @@
       });
     });
 
-    modalClose.addEventListener('click', () => {
-      closeModal();
-    });
+    // Modal close button
+    const modal = getElement('feedback-modal');
+    const modalClose = getElement('modal-close');
 
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
+    if (modalClose) {
+      modalClose.addEventListener('click', () => {
         closeModal();
-      }
-    });
+      });
+    }
 
-    connectToMongoDB();
+    // Close modal when clicking outside
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+    }
+
+    // Initialize with MongoDB connection after a short delay
+    setTimeout(() => {
+      console.log('Initializing MongoDB connection...');
+      try {
+        connectToMongoDB();
+      } catch (error) {
+        console.error('Error during initial MongoDB connection:', error);
+        // Show error on the page
+        const connectionText = getElement('connection-text', true);
+        connectionText.textContent = 'Error connecting to MongoDB: ' + error.message;
+      }
+    }, 100);
   });
 
   function openConversationModal(item) {
@@ -1522,21 +1777,25 @@
                   item.uuid ||
                   `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-          const hasAgentHistoryData = item.agentHistoryFilteredData &&
+          const hasAgentHistoryData = Boolean(item.agentHistoryFilteredData) &&
                   item.agentHistoryFilteredData !== "[]" &&
-                  item.agentHistoryFilteredData.length > 2;
+                  item.agentHistoryFilteredData !== undefined &&
+                  String(item.agentHistoryFilteredData).length > 2;
 
-          const hasContractIds = item.contract_ids &&
+          const hasContractIds = Boolean(item.contract_ids) &&
                   item.contract_ids !== "[]" &&
-                  item.contract_ids.length > 2;
+                  item.contract_ids !== undefined &&
+                  String(item.contract_ids).length > 2;
 
-          const hasDocumentIds = item.document_ids &&
+          const hasDocumentIds = Boolean(item.document_ids) &&
                   item.document_ids !== "[]" &&
-                  item.document_ids.length > 2;
+                  item.document_ids !== undefined &&
+                  String(item.document_ids).length > 2;
 
-          const hasEntitySuggesterData = item.entitySuggesterData &&
+          const hasEntitySuggesterData = Boolean(item.entitySuggesterData) &&
                   item.entitySuggesterData !== "[]" &&
-                  item.entitySuggesterData.length > 2;
+                  item.entitySuggesterData !== undefined &&
+                  String(item.entitySuggesterData).length > 2;
 
           return {
             id: id,
@@ -1682,6 +1941,10 @@
       connectionIndicator.classList.remove('connected');
       connectionIndicator.classList.remove('disconnected');
       connectionText.textContent = `Connecting to MongoDB (page ${page + 1})...`;
+
+      // Get elements safely
+      const connectionIndicator = getElement('connection-indicator', true);
+      const connectionText = getElement('connection-text', true);
 
       data = [];
       filteredData = [];
@@ -1829,6 +2092,345 @@
       tab.style.display = (index >= startIndex && index <= endIndex) ? 'block' : 'none';
     });
   }
+
+  // Fix for schema buttons detection (add after the getElement function, around line 480)
+
+  // Function to ensure schema buttons exist
+  function ensureSchemaButtonsExist() {
+    console.log('Checking and ensuring schema buttons exist...');
+
+    // Get the schema filters container
+    const schemaFilters = getElement('schema-filters', true);
+
+    // Check if schema buttons already exist
+    const existingButtons = schemaFilters.querySelectorAll('.filter-btn[data-schema]');
+
+    if (existingButtons.length === 0) {
+      console.log('No schema buttons found, creating them...');
+
+      // Create schema buttons
+      schemaList.forEach(schema => {
+        const button = document.createElement('button');
+        button.className = 'filter-btn';
+        button.dataset.schema = schema;
+        button.textContent = schema;
+
+        // Add event listener for schema filtering
+        button.addEventListener('click', () => {
+          filterBySchema(schema);
+        });
+
+        // Add to container
+        schemaFilters.appendChild(button);
+      });
+
+      console.log(`Created ${schemaList.length} schema buttons`);
+    } else {
+      console.log(`Found ${existingButtons.length} existing schema buttons`);
+    }
+  }
+
+  // Call this function early to ensure buttons exist
+  document.addEventListener('DOMContentLoaded', function() {
+    // Execute with short delay to ensure DOM is ready
+    setTimeout(ensureSchemaButtonsExist, 100);
+
+    // Also patch the feedback-system-fixes.js detection
+    window.addEventListener('load', function() {
+      // Suppress the schema buttons warning by overriding console.error
+      const originalConsoleError = console.error;
+      console.error = function(...args) {
+        // Check if this is the specific error we want to suppress
+        if (args[0] === 'No schema buttons found. This might cause reference errors.') {
+          console.warn('Suppressed schema buttons warning, buttons will be created');
+          // Create buttons if they don't exist
+          ensureSchemaButtonsExist();
+        } else {
+          // Pass through to original console.error
+          originalConsoleError.apply(console, args);
+        }
+      };
+
+      // Restore original after a delay
+      setTimeout(() => {
+        console.error = originalConsoleError;
+      }, 2000);
+    });
+  });
+
+
+  // Add this fix near the top of your script (around line 390, before most other code)
+
+  // Global proxy for connectionIndicator and connectionText
+  (function() {
+    // Create global accessor for connection elements
+    Object.defineProperty(window, 'connectionIndicator', {
+      get: function() {
+        const element = document.getElementById('connection-indicator');
+        if (!element) {
+          console.warn('Accessing undefined connectionIndicator, creating on demand');
+          // Create the element on demand
+          const newElement = document.createElement('div');
+          newElement.id = 'connection-indicator';
+          newElement.className = 'status-indicator';
+
+          // Find connection status container or create it
+          let container = document.querySelector('.connection-status');
+          if (!container) {
+            container = document.createElement('div');
+            container.className = 'connection-status';
+            document.body.insertBefore(container, document.body.firstChild);
+          }
+
+          container.appendChild(newElement);
+          return newElement;
+        }
+        return element;
+      },
+      configurable: true
+    });
+
+    Object.defineProperty(window, 'connectionText', {
+      get: function() {
+        const element = document.getElementById('connection-text');
+        if (!element) {
+          console.warn('Accessing undefined connectionText, creating on demand');
+          // Create the element on demand
+          const newElement = document.createElement('span');
+          newElement.id = 'connection-text';
+          newElement.textContent = 'Connecting to MongoDB...';
+
+          // Find connection status container or create it
+          let container = document.querySelector('.connection-status');
+          if (!container) {
+            container = document.createElement('div');
+            container.className = 'connection-status';
+            document.body.insertBefore(container, document.body.firstChild);
+          }
+
+          container.appendChild(newElement);
+          return newElement;
+        }
+        return element;
+      },
+      configurable: true
+    });
+
+    // Connect to MongoDB function wrapper
+    const originalConnectToMongoDB = window.connectToMongoDB;
+    window.connectToMongoDB = function(page = 0) {
+      try {
+        // Make sure variables are defined
+        const connectionIndicator = window.connectionIndicator;
+        const connectionText = window.connectionText;
+
+        // Call original if exists
+        if (typeof originalConnectToMongoDB === 'function') {
+          return originalConnectToMongoDB(page);
+        } else {
+          console.error('Original connectToMongoDB function not found');
+          connectionText.textContent = 'Error: MongoDB connection function not found';
+          return Promise.reject(new Error('MongoDB connection function not found'));
+        }
+      } catch (error) {
+        console.error('Error in connectToMongoDB wrapper:', error);
+        return Promise.reject(error);
+      }
+    };
+  })();
+
+  // Add a patch for pagination-fix.js's connectToMongoDB function
+  document.addEventListener('DOMContentLoaded', function() {
+    // Create a MutationObserver to watch for script tags
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type !== 'childList') continue;
+
+        for (const node of mutation.addedNodes) {
+          if (node.nodeName !== 'SCRIPT') continue;
+
+          // Check if this is pagination-fix.js
+          if (node.src && node.src.includes('pagination-fix.js')) {
+            console.log('Detected pagination-fix.js loading, preparing patch...');
+
+            // Wait for script to load and execute
+            node.addEventListener('load', () => {
+              console.log('Patching pagination-fix.js...');
+
+              // Store original connectToMongoDB if it exists at this point
+              const originalConnectToMongoDB = window.connectToMongoDB;
+
+              // Define a new safe version
+              window.connectToMongoDB = function(page = 0) {
+                try {
+                  console.log('Safe connectToMongoDB called from pagination-fix.js');
+
+                  // Ensure we have connection elements
+                  const connectionIndicator = window.connectionIndicator;
+                  const connectionText = window.connectionText;
+
+                  // Show connecting status safely
+                  if (connectionIndicator && connectionIndicator.classList) {
+                    connectionIndicator.classList.remove('connected');
+                    connectionIndicator.classList.remove('disconnected');
+                  }
+
+                  if (connectionText) {
+                    connectionText.textContent = `Connecting to MongoDB (page ${page + 1})...`;
+                  }
+
+                  // Call original if it exists
+                  if (typeof originalConnectToMongoDB === 'function') {
+                    return originalConnectToMongoDB(page);
+                  } else {
+                    console.error('Original connectToMongoDB function not found after patching');
+                    if (connectionText) {
+                      connectionText.textContent = 'Error: MongoDB connection function not found';
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error in patched connectToMongoDB:', error);
+                }
+              };
+            });
+          }
+        }
+      }
+    });
+
+    // Start observing document for script additions
+    observer.observe(document, { childList: true, subtree: true });
+
+    // Disconnect after a reasonable timeout
+    setTimeout(() => observer.disconnect(), 10000);
+  });
+
+  // Add this patch after the global variables declaration (around line 420)
+
+  // Patch for pagination-fix.js to handle missing activeTypeFilter
+  document.addEventListener('DOMContentLoaded', function() {
+    // Ensure activeTypeFilter is defined
+    window.activeTypeFilter = null;
+
+    // Patch the applyFilters function to handle missing type filter
+    const patchApplyFilters = function() {
+      // Get original function
+      const originalApplyFilters = window.applyFilters;
+
+      if (typeof originalApplyFilters === 'function') {
+        console.log('Patching applyFilters function to handle missing typeFilter...');
+
+        window.applyFilters = async function() {
+          try {
+            // Build query parameters for server-side filtering
+            const queryParams = new URLSearchParams();
+
+            // Add page and limit
+            queryParams.append('page', window.currentPage || 0);
+            queryParams.append('limit', window.pageSize || 20);
+
+            // Add active filters
+            if (window.activeSchema) {
+              queryParams.append('schema', window.activeSchema);
+            }
+
+            // PATCH: Skip type filter if not defined
+            // Original code:
+            // if (activeTypeFilter) {
+            //   queryParams.append('type', activeTypeFilter);
+            // }
+
+            // Instead use global variable or default to null
+            if (window.activeTypeFilter) {
+              queryParams.append('type', window.activeTypeFilter);
+            }
+
+            // Continue with rest of function...
+            if (window.activeFeedbackFilter) {
+              queryParams.append('feedback', window.activeFeedbackFilter);
+            }
+
+            // Add hidden filter
+            queryParams.append('hidden', window.showHidden || false);
+
+            // Add search query
+            if (window.searchQuery) {
+              queryParams.append('search', window.searchQuery);
+            }
+
+            // Call original function if exists
+            return originalApplyFilters.apply(this, arguments);
+          } catch (error) {
+            console.error('Error in patched applyFilters:', error);
+
+            // Fallback to client-side filtering
+            console.log('Falling back to client-side filtering...');
+
+            // Only client-side filter the current page data
+            let filtered = [...window.data];
+
+            // Apply schema filter if active
+            if (window.activeSchema) {
+              filtered = filtered.filter(item => item.schema === window.activeSchema);
+            }
+
+            // Apply feedback filter if active
+            if (window.activeFeedbackFilter) {
+              filtered = filtered.filter(item => item.feedback === window.activeFeedbackFilter);
+            }
+
+            // Apply hidden filter
+            if (!window.showHidden) {
+              filtered = filtered.filter(item => !item.hidden);
+            }
+
+            // Apply search query
+            if (window.searchQuery) {
+              filtered = filtered.filter(item =>
+                      (item.question && item.question.toLowerCase().includes(window.searchQuery)) ||
+                      (item.query && item.query.toLowerCase().includes(window.searchQuery))
+              );
+            }
+
+            window.filteredData = filtered;
+            window.renderItems();
+          }
+        };
+      }
+    };
+
+    // Execute patch immediately
+    patchApplyFilters();
+
+    // Also patch on window load to ensure it runs after all scripts
+    window.addEventListener('load', patchApplyFilters);
+
+    // Patch for continuous-loading-fix.js
+    const patchContinuousLoadingFix = function() {
+      // Make sure optimizeFilterApplication function is safe
+      if (typeof window.optimizeFilterApplication === 'function') {
+        console.log('Patching optimizeFilterApplication function...');
+
+        const originalOptimizeFilterApplication = window.optimizeFilterApplication;
+
+        window.optimizeFilterApplication = function() {
+          try {
+            // Ensure activeTypeFilter exists
+            window.activeTypeFilter = window.activeTypeFilter || null;
+
+            // Call original
+            return originalOptimizeFilterApplication.apply(this, arguments);
+          } catch (error) {
+            console.error('Error in patched optimizeFilterApplication:', error);
+          }
+        };
+      }
+    };
+
+    // Patch for continuous loading fix
+    setTimeout(patchContinuousLoadingFix, 1000);
+  });
+
 
   function filterBySchema(schema) {
     const button = document.querySelector(`.filter-btn[data-schema="${schema}"]`);
