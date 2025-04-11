@@ -155,18 +155,69 @@
       line-height: 1.5;
     }
 
-    /* Table styling for conversations */
-    .conversation-table {
-      border-collapse: collapse;
-      width: 100%;
-      margin: 1rem 0;
-      font-size: 0.9rem;
+    /* Sort controls */
+    .sort-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
     }
 
-    .conversation-table td {
+    .sort-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      background-color: #1f2937;
+      color: #d1d5db;
+      border: none;
+      cursor: pointer;
+    }
+
+    .sort-btn:hover {
+      background-color: #374151;
+    }
+
+    .sort-btn.active {
+      background-color: #2563eb;
+      color: white;
+    }
+    /* Date range filter */
+    .date-range-filter {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .date-inputs {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .date-input-group {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .date-input {
+      padding: 0.35rem 0.5rem;
+      background-color: #1f2937;
+      color: #d1d5db;
       border: 1px solid #374151;
-      padding: 0.5rem;
-      text-align: left;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+    }
+
+    .date-input:focus {
+      border-color: #3b82f6;
+      outline: none;
     }
 
     /* Cypher query styling */
@@ -732,12 +783,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes pulse {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      70% { transform: scale(1.1); opacity: 1; }
-      100% { transform: scale(0.95); opacity: 0.8; }
-    }
-
     .hidden {
       display: none;
     }
@@ -838,6 +883,47 @@
     <button data-size="200" class="page-size-btn">200</button>
   </div>
 
+  <!-- Date Sorting Controls -->
+  <div class="sort-controls">
+    <span>Sort by date:</span>
+    <button id="sort-newest" class="sort-btn active">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m3 16 4 4 4-4"/>
+        <path d="M7 20V4"/>
+        <path d="M11 4h10"/>
+        <path d="M11 8h7"/>
+        <path d="M11 12h4"/>
+      </svg>
+      Newest First
+    </button>
+    <button id="sort-oldest" class="sort-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m3 8 4-4 4 4"/>
+        <path d="M7 4v16"/>
+        <path d="M11 12h4"/>
+        <path d="M11 16h7"/>
+        <path d="M11 20h10"/>
+      </svg>
+      Oldest First
+    </button>
+  </div>
+  <!-- Date Range Filter -->
+  <div class="date-range-filter">
+    <span>Filter by time:</span>
+    <div class="date-inputs">
+      <div class="date-input-group">
+        <label for="date-from">From:</label>
+        <input type="date" id="date-from" class="date-input">
+      </div>
+      <div class="date-input-group">
+        <label for="date-to">To:</label>
+        <input type="date" id="date-to" class="date-input">
+      </div>
+    </div>
+    <button id="apply-date-filter" class="filter-btn">Apply</button>
+    <button id="clear-date-filter" class="filter-btn">Clear</button>
+  </div>
+
   <!-- Tabs Navigation -->
   <div id="tabs-container" class="tabs-container">
     <div class="tabs-header">
@@ -893,39 +979,31 @@
   let showHidden = false;
   let pageSize = 20;
   let searchQuery = '';
-  let activeAnimationId = null;
-  let animationTimeout = null;
   let currentItemId = null;
   let schemaList = ["Mesai", "Mukavele", "Genel"];
   let currentPage = 0;
   let totalPages = 0;
   let visibleTabCount = 5; // Number of tabs to show at once
+  let sortOrder = 'newest'; // 'newest' or 'oldest'
+  let dateFrom = null;
+  let dateTo = null;
 
   // Function to format date in a user-friendly way
   function formatDateTime(dateStr) {
-    // If it's already a well-formatted date, return it
     if (/\d{1,2}\/\d{1,2}\/\d{4}, \d{1,2}:\d{2}:\d{2}/.test(dateStr)) {
       return dateStr;
     }
 
     let date;
 
-    // Try to parse the date string
     if (typeof dateStr === 'string') {
-      // Handle ISO format
       if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(dateStr)) {
         date = new Date(dateStr);
-      }
-      // Handle Unix timestamp (seconds)
-      else if (/^\d{10}$/.test(dateStr)) {
+      } else if (/^\d{10}$/.test(dateStr)) {
         date = new Date(parseInt(dateStr) * 1000);
-      }
-      // Handle Unix timestamp (milliseconds)
-      else if (/^\d{13}$/.test(dateStr)) {
+      } else if (/^\d{13}$/.test(dateStr)) {
         date = new Date(parseInt(dateStr));
-      }
-      // Try general parsing as a fallback
-      else {
+      } else {
         date = new Date(dateStr);
       }
     } else if (dateStr instanceof Date) {
@@ -934,12 +1012,10 @@
       return "Invalid date";
     }
 
-    // Check if the date is valid
     if (isNaN(date.getTime())) {
       return "Invalid date";
     }
 
-    // Format the date in a user-friendly way
     const options = {
       year: 'numeric',
       month: 'short',
@@ -951,26 +1027,19 @@
     return date.toLocaleDateString(undefined, options);
   }
 
-  // Helper function to render formatted content
   // Helper function to render formatted content with better HTML handling
   function renderFormattedContent(text) {
     if (!text) return '';
 
-    // Check if content is HTML (contains tags)
     if (text.includes('<') && text.includes('>')) {
-      // This is likely HTML content, return it directly to be rendered as HTML
       return text;
     }
 
-    // Regular formatting for non-HTML content
-    // Replace newlines with <br>
     let formattedText = text.replace(/\n/g, '<br>');
 
-    // Handle bold text (** or __)
     formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     formattedText = formattedText.replace(/__(.*?)__/g, '<strong>$1</strong>');
 
-    // Handle table formatting if text contains pipe characters
     if (formattedText.includes('|')) {
       const lines = formattedText.split('<br>');
       let inTable = false;
@@ -978,15 +1047,12 @@
       let processedLines = [];
 
       for (let line of lines) {
-        // Check if line looks like a table row
         if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
           if (!inTable) {
-            // Start a new table
             inTable = true;
             tableContent = '<table class="conversation-table">';
           }
 
-          // Process table row
           const cells = line.split('|').filter(cell => cell.trim() !== '');
           tableContent += '<tr>';
           cells.forEach(cell => {
@@ -995,7 +1061,6 @@
           tableContent += '</tr>';
         } else {
           if (inTable) {
-            // End the table
             tableContent += '</table>';
             processedLines.push(tableContent);
             inTable = false;
@@ -1005,7 +1070,6 @@
         }
       }
 
-      // Close any open table
       if (inTable) {
         tableContent += '</table>';
         processedLines.push(tableContent);
@@ -1021,12 +1085,10 @@
   function openConversationModal(item) {
     currentItemId = item.id;
 
-    // Set title and user info
     document.getElementById('modal-title').textContent = "Conversation";
     document.getElementById('modal-username').textContent = `User: ${item.user}`;
     document.getElementById('modal-datetime').textContent = `Date: ${formatDateTime(item.datetime)}`;
 
-    // Set conversation content
     const modalBody = document.getElementById('modal-body');
     modalBody.innerHTML = '';
 
@@ -1049,7 +1111,6 @@
       modalBody.innerHTML = '<p>No conversation available</p>';
     }
 
-    // Show modal with animation
     const modal = document.getElementById('feedback-modal');
     modal.classList.add('active');
   }
@@ -1058,12 +1119,10 @@
   function openSuggestionModal(item) {
     currentItemId = item.id;
 
-    // Set title and user info
     document.getElementById('modal-title').textContent = "Suggestions";
     document.getElementById('modal-username').textContent = `User: ${item.user}`;
     document.getElementById('modal-datetime').textContent = `Date: ${formatDateTime(item.datetime)}`;
 
-    // Set suggestion content
     const modalBody = document.getElementById('modal-body');
     modalBody.innerHTML = '';
 
@@ -1084,7 +1143,6 @@
 
     modalBody.appendChild(suggestionList);
 
-    // Show modal with animation
     const modal = document.getElementById('feedback-modal');
     modal.classList.add('active');
   }
@@ -1093,12 +1151,10 @@
   function openCypherModal(item) {
     currentItemId = item.id;
 
-    // Set title and user info
     document.getElementById('modal-title').textContent = "Cypher Query";
     document.getElementById('modal-username').textContent = `User: ${item.user}`;
     document.getElementById('modal-datetime').textContent = `Date: ${formatDateTime(item.datetime)}`;
 
-    // Set cypher content
     const modalBody = document.getElementById('modal-body');
     modalBody.innerHTML = '';
 
@@ -1120,14 +1176,12 @@
 
     modalBody.appendChild(cypherContainer);
 
-    // Show modal with animation
     const modal = document.getElementById('feedback-modal');
     modal.classList.add('active');
   }
 
   // Load or initialize DOM elements
   document.addEventListener('DOMContentLoaded', function() {
-    // Query for DOM elements
     const searchInput = document.getElementById('search-input');
     const schemaFilterButtons = document.querySelectorAll('#schema-filters .filter-btn');
     const positiveFilter = document.getElementById('positive-filter');
@@ -1139,24 +1193,63 @@
     const noResults = document.getElementById('no-results');
     const connectionIndicator = document.getElementById('connection-indicator');
     const connectionText = document.getElementById('connection-text');
+    const dateFromInput = document.getElementById('date-from');
+    const dateToInput = document.getElementById('date-to');
+    const applyDateFilterBtn = document.getElementById('apply-date-filter');
+    const clearDateFilterBtn = document.getElementById('clear-date-filter');
 
-    // Modal elements
     const modal = document.getElementById('feedback-modal');
     const modalClose = document.getElementById('modal-close');
 
-    // Setup event listeners
     searchInput.addEventListener('input', () => {
       searchQuery = searchInput.value.toLowerCase();
       applyFilters();
     });
 
-    // Schema filter buttons (for filtering)
+    const sortNewestBtn = document.getElementById('sort-newest');
+    const sortOldestBtn = document.getElementById('sort-oldest');
+
+    sortNewestBtn.addEventListener('click', () => {
+      if (sortOrder !== 'newest') {
+        sortOrder = 'newest';
+        sortNewestBtn.classList.add('active');
+        sortOldestBtn.classList.remove('active');
+        applyFilters();
+      }
+    });
+
+    sortOldestBtn.addEventListener('click', () => {
+      if (sortOrder !== 'oldest') {
+        sortOrder = 'oldest';
+        sortOldestBtn.classList.add('active');
+        sortNewestBtn.classList.remove('active');
+        applyFilters();
+      }
+    });
+
+    applyDateFilterBtn.addEventListener('click', () => {
+      const fromValue = dateFromInput.value;
+      const toValue = dateToInput.value;
+
+      dateFrom = fromValue ? new Date(fromValue) : null;
+      dateTo = toValue ? new Date(toValue + 'T23:59:59') : null;
+
+      applyFilters();
+    });
+
+    clearDateFilterBtn.addEventListener('click', () => {
+      dateFromInput.value = '';
+      dateToInput.value = '';
+      dateFrom = null;
+      dateTo = null;
+      applyFilters();
+    });
+
     schemaFilterButtons.forEach(button => {
       const schema = button.dataset.schema;
       button.addEventListener('click', () => filterBySchema(schema));
     });
 
-    // Feedback filter event listeners
     positiveFilter.addEventListener('click', () => {
       if (activeFeedbackFilter === 'positive') {
         activeFeedbackFilter = null;
@@ -1181,7 +1274,6 @@
       applyFilters();
     });
 
-    // Toggle hidden items
     hiddenFilter.addEventListener('click', () => {
       showHidden = !showHidden;
       if (showHidden) {
@@ -1209,7 +1301,6 @@
       applyFilters();
     });
 
-    // Page size buttons
     pageSizeButtons.forEach(button => {
       button.addEventListener('click', () => {
         pageSizeButtons.forEach(btn => btn.classList.remove('active'));
@@ -1219,32 +1310,26 @@
       });
     });
 
-    // Modal close button
     modalClose.addEventListener('click', () => {
       closeModal();
     });
 
-    // Close modal when clicking outside
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
         closeModal();
       }
     });
 
-    // Initialize with MongoDB connection
     connectToMongoDB();
   });
 
-  // Function to open the modal with conversation content
   function openConversationModal(item) {
     currentItemId = item.id;
 
-    // Set title and user info
     document.getElementById('modal-title').textContent = "Conversation";
     document.getElementById('modal-username').textContent = `User: ${item.user}`;
     document.getElementById('modal-datetime').textContent = `Date: ${formatDateTime(item.datetime)}`;
 
-    // Set conversation content
     const modalBody = document.getElementById('modal-body');
     modalBody.innerHTML = '';
 
@@ -1267,21 +1352,17 @@
       modalBody.innerHTML = '<p>No conversation available</p>';
     }
 
-    // Show modal with animation
     const modal = document.getElementById('feedback-modal');
     modal.classList.add('active');
   }
 
-  // Function to open the modal with suggestion content
   function openSuggestionModal(item) {
     currentItemId = item.id;
 
-    // Set title and user info
     document.getElementById('modal-title').textContent = "Suggestion";
     document.getElementById('modal-username').textContent = `User: ${item.user}`;
     document.getElementById('modal-datetime').textContent = `Date: ${formatDateTime(item.datetime)}`;
 
-    // Set suggestion content
     const modalBody = document.getElementById('modal-body');
     modalBody.innerHTML = '';
 
@@ -1302,21 +1383,17 @@
 
     modalBody.appendChild(suggestionList);
 
-    // Show modal with animation
     const modal = document.getElementById('feedback-modal');
     modal.classList.add('active');
   }
 
-  // Function to open the modal with cypher query content
   function openCypherModal(item) {
     currentItemId = item.id;
 
-    // Set title and user info
     document.getElementById('modal-title').textContent = "Cypher Query";
     document.getElementById('modal-username').textContent = `User: ${item.user}`;
     document.getElementById('modal-datetime').textContent = `Date: ${formatDateTime(item.datetime)}`;
 
-    // Set cypher content
     const modalBody = document.getElementById('modal-body');
     modalBody.innerHTML = '';
 
@@ -1337,19 +1414,16 @@
 
     modalBody.appendChild(cypherList);
 
-    // Show modal with animation
     const modal = document.getElementById('feedback-modal');
     modal.classList.add('active');
   }
 
-  // Function to close the modal
   function closeModal() {
     const modal = document.getElementById('feedback-modal');
     modal.classList.remove('active');
     currentItemId = null;
   }
 
-  // Updated MongoDB data conversion focusing on required fields
   function convertMongoDataToAppFormat(mongoData) {
     if (!mongoData || !Array.isArray(mongoData)) {
       console.error("Invalid MongoDB data:", mongoData);
@@ -1359,32 +1433,25 @@
     try {
       return mongoData.map(item => {
         try {
-          console.log("Processing item:", item); // Add debugging to see the exact structure
+          console.log("Processing item:", item);
 
-          // Parse messages with better HTML handling
           let parsedMessages = parseMessages(item.messages || "[]");
 
-          // Find first user message for question (but handle empty arrays)
           const firstUserMessage = parsedMessages.length > 0 ?
                   parsedMessages.find(msg => msg.role === 'user') : null;
           const question = firstUserMessage ? firstUserMessage.message : 'No question found';
 
-          // Handle entitySuggesterData more robustly
           let suggestions = [];
           try {
             if (item.entitySuggesterData && item.entitySuggesterData !== "[]") {
-              // Log for debugging
               console.log("Processing entitySuggesterData:", item.entitySuggesterData);
 
-              // Try different parsing approaches
               if (typeof item.entitySuggesterData === 'string') {
-                // Try basic replacement approach
                 const cleanedData = item.entitySuggesterData
                         .replace(/=/g, ':')
                         .replace(/'/g, '"');
 
                 try {
-                  // Try parsing as JSON
                   const parsedData = JSON.parse(cleanedData);
 
                   if (Array.isArray(parsedData)) {
@@ -1401,7 +1468,6 @@
                 } catch (jsonError) {
                   console.warn("Error parsing entitySuggesterData as JSON", jsonError);
 
-                  // Use regex as fallback
                   const suggestionMatches = item.entitySuggesterData.match(/suggestion=([^,}]+)/g);
                   if (suggestionMatches) {
                     suggestionMatches.forEach(match => {
@@ -1418,15 +1484,12 @@
             console.warn("Error processing suggestions:", suggErr);
           }
 
-          // Handle sql_query more safely
           let cypherQueries = [];
           if (item.sql_query) {
-            // Ensure it's not null
             if (typeof item.sql_query === 'string' && item.sql_query.trim() !== '') {
               cypherQueries = [item.sql_query];
             }
           } else {
-            // Try to extract query from agentHistoryFilteredData as fallback
             try {
               if (item.agentHistoryFilteredData && item.agentHistoryFilteredData.includes('content=MATCH')) {
                 const match = item.agentHistoryFilteredData.match(/content=(MATCH[^}]+)/);
@@ -1439,7 +1502,6 @@
             }
           }
 
-          // Extract timestamp with more robust handling
           let timestamp;
           if (item.timestamp) {
             timestamp = typeof item.timestamp === 'number' ?
@@ -1451,18 +1513,15 @@
             timestamp = Date.now();
           }
 
-          // Format date
           const date = new Date(timestamp);
           const formattedDate = isNaN(date.getTime()) ? 'Invalid date' :
                   date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
 
-          // Extract ID with improved handling
           const id = item._id?.$oid ||
                   (typeof item._id === 'string' ? item._id : null) ||
                   item.uuid ||
                   `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-          // Check for data presence
           const hasAgentHistoryData = item.agentHistoryFilteredData &&
                   item.agentHistoryFilteredData !== "[]" &&
                   item.agentHistoryFilteredData.length > 2;
@@ -1481,7 +1540,7 @@
 
           return {
             id: id,
-            schema: item.schema || '', // This field might not be present in new data
+            schema: item.schema || '',
             question: question,
             conversation: parsedMessages,
             suggestions: suggestions,
@@ -1491,12 +1550,10 @@
             user: item.userName || 'Unknown',
             datetime: formattedDate,
             timestamp: timestamp,
-            // Add new data fields
             agentHistoryFilteredData: item.agentHistoryFilteredData || "[]",
             contractIds: item.contract_ids || "[]",
             documentIds: item.document_ids || "[]",
             entitySuggesterData: item.entitySuggesterData || "[]",
-            // Add flags for button enabling
             hasAgentHistoryData: hasAgentHistoryData,
             hasContractIds: hasContractIds,
             hasDocumentIds: hasDocumentIds,
@@ -1506,20 +1563,17 @@
           console.error("Error converting item:", itemError, item);
           return null;
         }
-      }).filter(Boolean); // Remove any null items
+      }).filter(Boolean);
     } catch (error) {
       console.error("Error converting MongoDB data:", error);
       return [];
     }
   }
 
-  // Memory-efficient message parsing
   function parseMessages(messagesString) {
     try {
-      // Add detailed debugging
       console.log("Parsing messages:", messagesString);
 
-      // Handle null/undefined
       if (!messagesString) {
         console.warn('Messages is null or undefined');
         return [
@@ -1527,7 +1581,6 @@
         ];
       }
 
-      // If it's not a string, return default message
       if (typeof messagesString !== 'string') {
         console.warn('Messages is not a string:', messagesString);
         return [
@@ -1536,32 +1589,25 @@
         ];
       }
 
-      // Handle new format with role=user, content=...
       if (messagesString.includes('role=') && messagesString.includes('content=')) {
         try {
-          // Clean up the string to make it more parseable
           let cleanedString = messagesString
-                  .replace(/^\[|\]$/g, '') // Remove outer brackets
-                  .replace(/\}\s*,\s*\{/g, '}|||{'); // Replace comma between objects with separator
+                  .replace(/^\[|\]$/g, '')
+                  .replace(/\}\s*,\s*\{/g, '}|||{');
 
-          // Split by our separator
           const messageParts = cleanedString.split('|||');
 
           return messageParts.map(part => {
-            // Extract role
             const roleMatch = part.match(/role=([^,}]+)/);
             const role = roleMatch ? roleMatch[1].trim() : 'unknown';
 
-            // Extract content - capture everything after content= until the end or next field
             const contentMatch = part.match(/content=(.*?)(?=\s*,\s*\w+=|\s*\}|\s*$)/s);
             let message = contentMatch ? contentMatch[1].trim() : 'No content';
 
-            // If message starts with a quotation mark but doesn't end with one, add it
             if (message.startsWith('"') && !message.endsWith('"') && !message.endsWith('"}')) {
               message += '"';
             }
 
-            // Clean up any remaining braces or quotes
             message = message.replace(/^\{|\}$/g, '').trim();
             message = message.replace(/^"|"$/g, '').trim();
 
@@ -1572,9 +1618,7 @@
         }
       }
 
-      // Try JSON parsing
       try {
-        // First try direct JSON parse
         const parsedJson = JSON.parse(messagesString);
         if (Array.isArray(parsedJson)) {
           return parsedJson.map(msg => ({
@@ -1583,13 +1627,10 @@
           }));
         }
       } catch (jsonError) {
-        // Continue to other approaches
         console.warn("JSON parsing failed:", jsonError.message);
       }
 
-      // Try with replacements
       try {
-        // Replace = with : to make it valid JSON-like
         let jsonLikeString = messagesString
                 .replace(/([a-zA-Z]+)=/g, '"$1":')
                 .replace(/'/g, '"');
@@ -1605,7 +1646,6 @@
         console.warn('Failed with replacements too:', jsonError2.message);
       }
 
-      // Try regex approach
       try {
         const matches = messagesString.match(/\{role=(.*?), content=(.*?)(\},|\}$)/gs);
         if (matches && matches.length > 0) {
@@ -1623,7 +1663,6 @@
         console.warn('Regex parsing failed:', regexError.message);
       }
 
-      // Last resort
       console.warn("Using fallback parsing for:", messagesString.substring(0, 50) + "...");
       return [
         { role: 'user', message: 'Error parsing message' },
@@ -1638,19 +1677,15 @@
     }
   }
 
-  // Connect to MongoDB via API with pagination
   async function connectToMongoDB(page = 0) {
     try {
-      // Show connecting status
       connectionIndicator.classList.remove('connected');
       connectionIndicator.classList.remove('disconnected');
       connectionText.textContent = `Connecting to MongoDB (page ${page + 1})...`;
 
-      // Clear existing data
       data = [];
       filteredData = [];
 
-      // Fetch data from our backend API with pagination
       const response = await fetch(`${API_BASE_URL}/conversations?page=${page}&limit=${pageSize}`);
 
       if (!response.ok) {
@@ -1664,17 +1699,14 @@
       if (result.data) {
         mongoData = result.data;
 
-        // Update pagination info
         currentPage = result.pagination.page;
         totalPages = result.pagination.totalPages;
       } else {
-        // Handle old API format
         mongoData = result;
         currentPage = 0;
         totalPages = 1;
       }
 
-      // Update connection status
       connectionIndicator.classList.add('connected');
       connectionText.textContent = `Connected to MongoDB - ${mongoData.length} records loaded`;
 
@@ -1682,114 +1714,26 @@
         connectionText.textContent += ` (Page ${currentPage + 1} of ${totalPages} - Total: ${result.pagination.totalCount})`;
       }
 
-      // Convert and store data
       data = convertMongoDataToAppFormat(mongoData);
       console.log("Converted data:", data);
 
       filteredData = [...data.filter(item => !item.hidden)];
 
-      // In connectToMongoDB function, add after data conversion:
       console.log("API response received:", result);
       console.log("Converted data length:", data.length);
       console.log("First item:", data[0]);
 
-      // Initialize tabs
       initializeTabs(totalPages);
 
-      // Render items
       renderItems();
 
     } catch (error) {
       console.error('Error connecting to MongoDB:', error);
       connectionIndicator.classList.add('disconnected');
       connectionText.textContent = 'Failed to connect to MongoDB: ' + error.message;
-
-      // For development/testing - use sample data in case of error
-      if (confirm('Connection to API failed. Use sample data instead?')) {
-        // Create some sample data
-        const sampleData = [
-          {
-            id: "sample1",
-            schema: "Mesai",
-            question: "What are my work hours this week?",
-            conversation: [
-              { role: "user", message: "What are my work hours this week?" },
-              { role: "assistant", message: "Your work hours for this week are:\nMonday: 9 AM - 5 PM\nTuesday: 9 AM - 5 PM\nWednesday: 10 AM - 6 PM\nThursday: 9 AM - 5 PM\nFriday: 9 AM - 4 PM" }
-            ],
-            suggestions: [
-              "You might want to check your overtime hours for last week",
-              "Would you like to request time off?",
-              "Do you need to see your vacation balance?"
-            ],
-            cypherQueries: [
-              "MATCH (e:Employee {id: '12345'})-[:HAS_SCHEDULE]->(s:Schedule) WHERE s.week = '2023-W42' RETURN s",
-              "MATCH (e:Employee {id: '12345'})-[:WORKED]->(h:Hours) WHERE h.date >= '2023-10-16' RETURN h"
-            ],
-            feedback: "positive",
-            hidden: false,
-            user: "testuser1",
-            datetime: "2023-10-20 14:32:45"
-          },
-          {
-            id: "sample2",
-            schema: "Mukavele",
-            question: "When does my contract expire?",
-            conversation: [
-              { role: "user", message: "When does my contract expire?" },
-              { role: "assistant", message: "Your current contract expires on December 31, 2023. Would you like information about the renewal process?" }
-            ],
-            suggestions: [
-              "You might want to review your contract terms",
-              "Would you like to schedule a meeting with HR about renewal?",
-              "Do you need information about contract extensions?"
-            ],
-            cypherQueries: [
-              "MATCH (e:Employee {id: '12345'})-[:HAS_CONTRACT]->(c:Contract) RETURN c.expiryDate",
-              "MATCH (c:Contract)-[:HAS_TERMS]->(t:Terms) WHERE c.employeeId = '12345' RETURN t"
-            ],
-            feedback: "negative",
-            hidden: false,
-            user: "testuser2",
-            datetime: "2023-10-19 10:15:30"
-          },
-          {
-            id: "sample3",
-            schema: "Genel",
-            question: "How do I request vacation time?",
-            conversation: [
-              { role: "user", message: "How do I request vacation time?" },
-              { role: "assistant", message: "To request vacation time, you need to:\n1. Log into the employee portal\n2. Go to 'Time Off' section\n3. Click 'Request Time Off'\n4. Select the dates and type of leave\n5. Submit for approval" }
-            ],
-            suggestions: [
-              "You currently have 15 vacation days available",
-              "Would you like to see the company holiday calendar?",
-              "Do you need information about sick leave policy?"
-            ],
-            cypherQueries: [
-              "MATCH (e:Employee {id: '12345'})-[:HAS_BENEFITS]->(b:Benefits) RETURN b.vacationDays",
-              "MATCH (p:Policy {type: 'vacation'})-[:APPLIES_TO]->(d:Department {id: '54321'}) RETURN p"
-            ],
-            feedback: null,
-            hidden: true,
-            user: "testuser3",
-            datetime: "2023-10-18 09:45:12"
-          }
-        ];
-
-        data = sampleData;
-        filteredData = [...data.filter(item => !item.hidden)];
-
-        // Mock pagination for sample data
-        currentPage = 0;
-        totalPages = 1;
-        initializeTabs(totalPages);
-
-        renderItems();
-      }
     }
   }
 
-  // Initialize tab navigation
   function initializeTabs(totalPages) {
     const tabsList = document.getElementById('tabs-list');
     const prevTabBtn = document.getElementById('prev-tab-btn');
@@ -1797,10 +1741,8 @@
 
     if (!tabsList || !prevTabBtn || !nextTabBtn) return;
 
-    // Clear existing tabs
     tabsList.innerHTML = '';
 
-    // Create tabs
     for (let i = 0; i < totalPages; i++) {
       const tab = document.createElement('button');
       tab.className = `pagination-btn${currentPage === i ? ' active' : ''}`;
@@ -1816,14 +1758,11 @@
       tabsList.appendChild(tab);
     }
 
-    // Update tab visibility based on current page
     updateTabsVisibility();
 
-    // Update navigation buttons
     prevTabBtn.disabled = currentPage === 0;
     nextTabBtn.disabled = currentPage === totalPages - 1;
 
-    // Add event listeners to navigation buttons
     prevTabBtn.addEventListener('click', () => {
       if (currentPage > 0) {
         loadPage(currentPage - 1);
@@ -1837,13 +1776,10 @@
     });
   }
 
-  // Load specific page
   async function loadPage(page) {
-    // Show loading state
     connectionText.textContent = `Loading page ${page + 1}...`;
 
     try {
-      // Fetch data for specific page
       const response = await fetch(`${API_BASE_URL}/conversations?page=${page}&limit=${pageSize}`);
 
       if (!response.ok) {
@@ -1853,31 +1789,24 @@
       const result = await response.json();
       const mongoData = result.data;
 
-      // Update current page
       currentPage = page;
 
-      // Convert and store data
       data = convertMongoDataToAppFormat(mongoData);
       filteredData = [...data.filter(item => !item.hidden)];
 
-      // Update tabs
       const tabButtons = document.querySelectorAll('.pagination-btn');
       tabButtons.forEach(tab => {
         const tabPage = parseInt(tab.dataset.page);
         tab.classList.toggle('active', tabPage === currentPage);
       });
 
-      // Update tab visibility
       updateTabsVisibility();
 
-      // Update navigation buttons
       document.getElementById('prev-tab-btn').disabled = currentPage === 0;
       document.getElementById('next-tab-btn').disabled = currentPage === totalPages - 1;
 
-      // Update connection status
       connectionText.textContent = `Page ${currentPage + 1} of ${totalPages} - Total records: ${result.pagination.totalCount}`;
 
-      // Render items
       renderItems();
 
     } catch (error) {
@@ -1886,26 +1815,21 @@
     }
   }
 
-  // Update which tabs are visible
   function updateTabsVisibility() {
     const tabButtons = document.querySelectorAll('.pagination-btn');
 
-    // Calculate start and end indexes for visible tabs
     let startIndex = Math.max(0, currentPage - Math.floor(visibleTabCount / 2));
     let endIndex = Math.min(totalPages - 1, startIndex + visibleTabCount - 1);
 
-    // Adjust start index if needed
     if (endIndex - startIndex + 1 < visibleTabCount) {
       startIndex = Math.max(0, endIndex - visibleTabCount + 1);
     }
 
-    // Show/hide tabs based on calculated range
     tabButtons.forEach((tab, index) => {
       tab.style.display = (index >= startIndex && index <= endIndex) ? 'block' : 'none';
     });
   }
 
-  // Filter by schema
   function filterBySchema(schema) {
     const button = document.querySelector(`.filter-btn[data-schema="${schema}"]`);
 
@@ -1915,7 +1839,6 @@
       activeSchema = null;
       button.classList.remove('active');
     } else {
-      // Remove active class from all schema buttons
       document.querySelectorAll('.filter-btn[data-schema]').forEach(btn => {
         btn.classList.remove('active');
       });
@@ -1927,26 +1850,36 @@
     applyFilters();
   }
 
-  // Apply all filters
   function applyFilters() {
     let filtered = [...data];
 
-    // Apply schema filter if active
     if (activeSchema) {
       filtered = filtered.filter(item => item.schema === activeSchema);
     }
 
-    // Apply feedback filter if active
     if (activeFeedbackFilter) {
       filtered = filtered.filter(item => item.feedback === activeFeedbackFilter);
     }
 
-    // Apply hidden filter
     if (!showHidden) {
       filtered = filtered.filter(item => !item.hidden);
     }
 
-    // Apply search query
+    if (dateFrom || dateTo) {
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item.timestamp);
+
+        if (dateFrom && dateTo) {
+          return itemDate >= dateFrom && itemDate <= dateTo;
+        } else if (dateFrom) {
+          return itemDate >= dateFrom;
+        } else if (dateTo) {
+          return itemDate <= dateTo;
+        }
+        return true;
+      });
+    }
+
     if (searchQuery) {
       filtered = filtered.filter(item =>
               (item.question && item.question.toLowerCase().includes(searchQuery)) ||
@@ -1957,11 +1890,19 @@
       );
     }
 
+    filtered.sort((a, b) => {
+      const timeA = a.timestamp || 0;
+      const timeB = b.timestamp || 0;
+
+      return sortOrder === 'newest'
+              ? timeB - timeA
+              : timeA - timeB;
+    });
+
     filteredData = filtered;
     renderItems();
   }
 
-  // Render feedback items with the updated design
   function renderItems() {
     const feedbackItems = document.getElementById('feedback-items');
     const noResults = document.getElementById('no-results');
@@ -1971,30 +1912,23 @@
 
     if (!feedbackItems || !noResults || !resultsCount) return;
 
-    // Update results count
     resultsCount.textContent = `Showing ${Math.min(pageSize, filteredData.length)} of ${filteredData.length} results`;
 
-    // Clear items container
     feedbackItems.innerHTML = '';
 
-    // Show or hide no results message
     if (filteredData.length === 0) {
       noResults.classList.remove('hidden');
     } else {
       noResults.classList.add('hidden');
 
-      // Render items
       filteredData.slice(0, pageSize).forEach((item, index) => {
-        // Create main feedback item container
         const itemElement = document.createElement('div');
         itemElement.className = 'feedback-item';
         itemElement.dataset.id = item.id;
 
-        // Create schema buttons column
         const schemaButtons = document.createElement('div');
         schemaButtons.className = 'schema-buttons';
 
-        // Add schema buttons
         schemaList.forEach(schema => {
           const button = document.createElement('button');
           button.className = `schema-btn${item.schema === schema ? ' active' : ''}`;
@@ -2002,18 +1936,16 @@
           button.dataset.schema = schema;
 
           button.addEventListener('click', (e) => {
-            e.stopPropagation(); // Don't open the modal when clicking schema buttons
+            e.stopPropagation();
             setSchema(item.id, schema);
           });
 
           schemaButtons.appendChild(button);
         });
 
-        // Create content area with user info and buttons
         const contentArea = document.createElement('div');
         contentArea.className = 'feedback-content';
 
-        // Add user info section
         const userInfo = document.createElement('div');
         userInfo.className = 'feedback-user-info';
         userInfo.innerHTML = `
@@ -2022,11 +1954,9 @@
         `;
         contentArea.appendChild(userInfo);
 
-        // Create buttons container
         const buttonsContainer = document.createElement('div');
         buttonsContainer.className = 'feedback-buttons';
 
-        // Create large conversation button
         const conversationBtn = document.createElement('button');
         conversationBtn.className = 'conversation-btn';
         conversationBtn.textContent = item.question;
@@ -2034,11 +1964,9 @@
           openConversationModal(item);
         });
 
-        // Create container for small buttons
         const smallButtons = document.createElement('div');
         smallButtons.className = 'small-buttons';
 
-        // Create suggestion button
         const suggestionBtn = document.createElement('button');
         suggestionBtn.className = 'suggestion-btn';
         suggestionBtn.textContent = 'Suggestion';
@@ -2046,7 +1974,6 @@
           openSuggestionModal(item);
         });
 
-        // Create cypher button
         const cypherBtn = document.createElement('button');
         cypherBtn.className = 'cypher-btn';
         cypherBtn.textContent = 'Cypher Query';
@@ -2054,22 +1981,17 @@
           openCypherModal(item);
         });
 
-        // Add small buttons to container
         smallButtons.appendChild(suggestionBtn);
         smallButtons.appendChild(cypherBtn);
 
-        // Add buttons to container
         buttonsContainer.appendChild(conversationBtn);
         buttonsContainer.appendChild(smallButtons);
 
-        // Add buttons container to content area
         contentArea.appendChild(buttonsContainer);
 
-        // Create additional data buttons container
         const additionalDataButtons = document.createElement('div');
         additionalDataButtons.className = 'additional-data-buttons';
 
-        // Create agent history button
         const agentHistoryBtn = document.createElement('button');
         agentHistoryBtn.className = 'data-btn agent-history-btn';
         agentHistoryBtn.disabled = !item.hasAgentHistoryData;
@@ -2090,7 +2012,6 @@
           }
         });
 
-        // Create contract IDs button
         const contractIdsBtn = document.createElement('button');
         contractIdsBtn.className = 'data-btn contract-ids-btn';
         contractIdsBtn.disabled = !item.hasContractIds;
