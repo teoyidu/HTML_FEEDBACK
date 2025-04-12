@@ -495,8 +495,6 @@ async function saveConversationToQdrant(conversationData) {
   }
 }
 
-// Simplified set of functions for the initial integration
-// Update the module.exports at the end of the file
 module.exports = {
   initializeQdrant,
   savePositiveConversation,
@@ -505,3 +503,41 @@ module.exports = {
   searchSimilarConversations,
   saveConversationToQdrant // Add this new function
 };
+/**
+ * Save a conversation directly to QDrant with user-provided data
+ * @param {object} conversationData - Conversation data to save
+ * @returns {Promise<boolean>} - Success status
+ */
+async function saveConversationToQdrant(conversationData) {
+  try {
+    // Generate embedding for conversation
+    const embedding = await generateEmbedding(conversationData);
+
+    // Prepare payload
+    const payload = {
+      id: conversationData.id,
+      schema: conversationData.schema || '',
+      question: conversationData.question || '',
+      timestamp: conversationData.timestamp || Date.now(),
+      userName: conversationData.userName || '',
+      type: conversationData.type || '',
+      conversation: conversationData.conversation || [],
+      sql_query: conversationData.sql_query || ''
+    };
+
+    // Upsert the point in QDrant
+    await qdrantClient.upsert(COLLECTION_NAME, {
+      points: [{
+        id: conversationData.id,
+        vector: embedding,
+        payload: payload
+      }]
+    });
+
+    console.log(`Saved conversation to QDrant: ${conversationData.id}`);
+    return true;
+  } catch (error) {
+    console.error('Error saving to QDrant:', error);
+    return false;
+  }
+}

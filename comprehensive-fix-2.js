@@ -463,7 +463,6 @@
      * Patch the feedback functions
      */
     function patchFeedbackFunctions() {
-        // Fix handlePositiveFeedback
         window.handlePositiveFeedback = async function(id) {
             console.log(`Handling positive feedback for ${id}`);
 
@@ -1255,3 +1254,318 @@
         }
     }
 })();
+// Function to show the QDrant popup
+function showQdrantPopup(item) {
+    // Check if a popup already exists and remove it
+    const existingPopup = document.getElementById('qdrant-popup');
+    if (existingPopup) {
+        existingPopup.remove();
+    }
+
+    // Create popup container
+    const popup = document.createElement('div');
+    popup.id = 'qdrant-popup';
+    popup.className = 'qdrant-popup';
+    popup.setAttribute('role', 'dialog');
+    popup.setAttribute('aria-labelledby', 'popup-title');
+    popup.setAttribute('aria-modal', 'true');
+    popup.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.75);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    `;
+
+    // Create popup content
+    const popupContent = document.createElement('div');
+    popupContent.className = 'popup-content';
+    popupContent.style.cssText = `
+        background-color: #1f2937;
+        border-radius: 0.5rem;
+        width: 90%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+    `;
+
+    // Create header
+    const popupHeader = document.createElement('div');
+    popupHeader.className = 'popup-header';
+    popupHeader.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #374151;
+    `;
+
+    // Create title
+    const popupTitle = document.createElement('h3');
+    popupTitle.id = 'popup-title';
+    popupTitle.textContent = "Add to QDrant";
+    popupTitle.style.cssText = `
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 500;
+    `;
+    popupHeader.appendChild(popupTitle);
+
+    // Create close button
+    const closeButton = document.createElement('button');
+    closeButton.className = 'popup-close';
+    closeButton.title = 'Close';
+    closeButton.setAttribute('aria-label', 'Close');
+    closeButton.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    `;
+    closeButton.style.cssText = `
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.25rem;
+        transition: background-color 0.2s;
+    `;
+    closeButton.addEventListener('mouseover', () => {
+        closeButton.style.backgroundColor = '#374151';
+    });
+    closeButton.addEventListener('mouseout', () => {
+        closeButton.style.backgroundColor = 'transparent';
+    });
+    closeButton.addEventListener('click', () => {
+        closePopup(popup);
+    });
+    popupHeader.appendChild(closeButton);
+
+    // Create body
+    const popupBody = document.createElement('div');
+    popupBody.className = 'popup-body';
+    popupBody.style.cssText = `
+        padding: 1rem;
+        overflow-y: auto;
+        flex: 1;
+    `;
+
+    // Create confirmation message
+    const confirmationMessage = document.createElement('p');
+    confirmationMessage.textContent = "Do you want to add this to QDrant?";
+    confirmationMessage.style.cssText = `
+        margin-bottom: 1rem;
+    `;
+    popupBody.appendChild(confirmationMessage);
+
+    // Create textarea label for conversation
+    const conversationLabel = document.createElement('label');
+    conversationLabel.setAttribute('for', 'qdrant-conversation');
+    conversationLabel.textContent = "Conversation:";
+    conversationLabel.style.cssText = `
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    `;
+    popupBody.appendChild(conversationLabel);
+
+    // Create textarea for conversation (empty as requested)
+    const conversationTextarea = document.createElement('textarea');
+    conversationTextarea.id = 'qdrant-conversation';
+    conversationTextarea.placeholder = "Enter conversation here...";
+    conversationTextarea.style.cssText = `
+        width: 100%;
+        min-height: 150px;
+        padding: 0.75rem;
+        background-color: #2d3748;
+        color: #e5e7eb;
+        border: 1px solid #4b5563;
+        border-radius: 0.375rem;
+        resize: vertical;
+        font-family: monospace;
+        margin-bottom: 1rem;
+    `;
+    popupBody.appendChild(conversationTextarea);
+
+    // Create textarea label for cypher query
+    const cypherLabel = document.createElement('label');
+    cypherLabel.setAttribute('for', 'qdrant-cypher');
+    cypherLabel.textContent = "Cypher Query:";
+    cypherLabel.style.cssText = `
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    `;
+    popupBody.appendChild(cypherLabel);
+
+    // Create textarea for cypher query (empty as requested)
+    const cypherTextarea = document.createElement('textarea');
+    cypherTextarea.id = 'qdrant-cypher';
+    cypherTextarea.placeholder = "Enter cypher query here...";
+    cypherTextarea.style.cssText = `
+        width: 100%;
+        min-height: 100px;
+        padding: 0.75rem;
+        background-color: #2d3748;
+        color: #e5e7eb;
+        border: 1px solid #4b5563;
+        border-radius: 0.375rem;
+        resize: vertical;
+        font-family: monospace;
+        margin-bottom: 1rem;
+    `;
+    popupBody.appendChild(cypherTextarea);
+
+    // Create footer with buttons
+    const popupFooter = document.createElement('div');
+    popupFooter.className = 'popup-footer';
+    popupFooter.style.cssText = `
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 1rem;
+        border-top: 1px solid #374151;
+    `;
+
+    // Create cancel button
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = "Cancel";
+    cancelButton.className = 'cancel-button';
+    cancelButton.style.cssText = `
+        padding: 0.5rem 1rem;
+        background-color: #374151;
+        color: #e5e7eb;
+        border: none;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    `;
+    cancelButton.addEventListener('mouseover', () => {
+        cancelButton.style.backgroundColor = '#4b5563';
+    });
+    cancelButton.addEventListener('mouseout', () => {
+        cancelButton.style.backgroundColor = '#374151';
+    });
+    cancelButton.addEventListener('click', () => {
+        closePopup(popup);
+    });
+    popupFooter.appendChild(cancelButton);
+
+    // Create submit button
+    const submitButton = document.createElement('button');
+    submitButton.textContent = "Send to QDrant";
+    submitButton.className = 'submit-button';
+    submitButton.style.cssText = `
+        padding: 0.5rem 1rem;
+        background-color: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    `;
+    submitButton.addEventListener('mouseover', () => {
+        submitButton.style.backgroundColor = '#1d4ed8';
+    });
+    submitButton.addEventListener('mouseout', () => {
+        submitButton.style.backgroundColor = '#2563eb';
+    });
+    submitButton.addEventListener('click', () => {
+        const conversation = conversationTextarea.value;
+        const cypherQuery = cypherTextarea.value;
+        sendToQdrant(item.id, conversation, cypherQuery);
+        closePopup(popup);
+    });
+    popupFooter.appendChild(submitButton);
+
+    // Add all parts to popup
+    popupContent.appendChild(popupHeader);
+    popupContent.appendChild(popupBody);
+    popupContent.appendChild(popupFooter);
+    popup.appendChild(popupContent);
+
+    // Add popup to body
+    document.body.appendChild(popup);
+
+    // Animate in
+    setTimeout(() => {
+        popup.style.opacity = '1';
+        popup.style.visibility = 'visible';
+        popupContent.style.transform = 'scale(1)';
+    }, 10);
+
+    // Close popup function
+    function closePopup(element) {
+        element.style.opacity = '0';
+        element.style.visibility = 'hidden';
+        setTimeout(() => element.remove(), 300);
+    }
+
+    // Add click outside to close
+    popup.addEventListener('click', (e) => {
+        if (e.target === popup) closePopup(popup);
+    });
+
+    // Handle ESC key
+    const escapeHandler = (e) => {
+        if (e.key === 'Escape') {
+            closePopup(popup);
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+}
+
+// Function to send data to QDrant
+async function sendToQdrant(id, conversation, cypherQuery) {
+    try {
+        // Input validation
+        if (!conversation || !cypherQuery) {
+            createAlert('Please enter both conversation and cypher query', 'warning');
+            return false;
+        }
+
+        const apiUrl = window.API_BASE_URL || 'http://localhost:3000/api';
+        const response = await fetch(`${apiUrl}/qdrant/add`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id,
+                conversation,
+                cypherQuery
+            })
+        });
+
+        if (!response.ok) {
+            console.error('Error sending to QDrant:', await response.text());
+            createAlert('Error sending to QDrant', 'error');
+            return false;
+        }
+
+        createAlert('Successfully added to QDrant', 'success');
+        return true;
+    } catch (error) {
+        console.error('Failed to send to QDrant:', error);
+        createAlert(`Failed to send to QDrant: ${error.message}`, 'error');
+        return false;
+    }
+}

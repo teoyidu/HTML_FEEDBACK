@@ -557,6 +557,74 @@ app.post('/api/qdrant/add', async (req, res) => {
     }
 });
 
+// Add a new endpoint for manual QDrant additions
+app.post('/api/qdrant/add', async (req, res) => {
+    try {
+        if (!db) await connectToMongo();
+
+        const { id, conversation, cypherQuery } = req.body;
+
+        // Validate input
+        if (!id || !conversation || !cypherQuery) {
+            return res.status(400).json({
+                error: 'Missing required fields',
+                details: 'id, conversation, and cypherQuery are required'
+            });
+        }
+
+        // Find the conversation in MongoDB to get additional details
+        const collection = db.collection(collectionName);
+        let mongoConversation;
+
+        try {
+            // Try as ObjectId
+            try {
+                mongoConversation = await collection.findOne({ _id: new ObjectId(id) });
+            } catch (idError) {
+                // If not a valid ObjectId, try as a string ID
+                mongoConversation = await collection.findOne({ id: id });
+            }
+
+            if (!mongoConversation) {
+                return res.status(404).json({ error: 'Conversation not found' });
+            }
+        } catch (dbError) {
+            console.error('Database error:', dbError);
+            return res.status(500).json({ error: 'Database error', details: dbError.message });
+        }
+
+        // Check if QDrant service is available
+        if (!qdrantService || typeof qdrantService.saveConversationToQdrant !== 'function') {
+            return res.status(501).json({ error: 'QDrant service is not available' });
+        }
+
+        // Prepare the conversation data for QDrant
+        const qdrantData = {
+            id: id,
+            schema: mongoConversation.schema || '',
+            question: extractQuestion(mongoConversation),
+            feedback: 'positive', // Always positive for manual additions
+            conversation: parseConversation(conversation),  // Parse the user-provided conversation
+            timestamp: mongoConversation.timestamp || Date.now(),
+            type: mongoConversation.type || '',
+            userName: mongoConversation.userName || '',
+            sql_query: cypherQuery // User-provided cypher query
+        };
+
+        // Save to QDrant
+        const success = await qdrantService.saveConversationToQdrant(qdrantData);
+
+        if (!success) {
+            return res.status(500).json({ error: 'Failed to save to QDrant' });
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error adding to QDrant:', error);
+        res.status(500).json({ error: 'Failed to add to QDrant', details: error.message });
+    }
+});
+
 // Helper function to parse conversation text
 function parseConversation(conversationText) {
     // Try to parse the conversation text into a structured format
@@ -594,6 +662,7 @@ function parseConversation(conversationText) {
         }];
     }
 }
+
 
 
 // Helper function to parse messages
