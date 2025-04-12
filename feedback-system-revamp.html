@@ -60,6 +60,142 @@
       border-color: #3b82f6;
       box-shadow: 0 0 0 1px #3b82f6;
     }
+    /* QDrant Panel Styles */
+    .qdrant-panel {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      width: 300px;
+      background-color: #1f2937;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 40;
+      border: 1px solid #374151;
+    }
+
+    .qdrant-panel h3 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      color: #e5e7eb;
+      border-bottom: 1px solid #374151;
+      padding-bottom: 0.5rem;
+    }
+
+    .qdrant-input-group {
+      margin-bottom: 1rem;
+    }
+
+    .qdrant-input-group label {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: #d1d5db;
+      font-size: 0.875rem;
+    }
+
+    .qdrant-input-group textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 0.5rem;
+      background-color: #2d3748;
+      color: #e5e7eb;
+      border: 1px solid #4b5563;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      resize: vertical;
+    }
+
+    .qdrant-input-group textarea:focus {
+      border-color: #2563eb;
+      outline: none;
+      box-shadow: 0 0 0 1px #2563eb;
+    }
+
+    .qdrant-send-btn {
+      width: 100%;
+      padding: 0.5rem;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 0.25rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .qdrant-send-btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    .highlighted {
+      animation: highlight-pulse 2s ease;
+    }
+
+    @keyframes highlight-pulse {
+      0%, 100% { border-color: #4b5563; }
+      50% { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3); }
+    }
+
+    /* QDrant Confirmation Dialog */
+    .qdrant-confirm-dialog {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .qdrant-confirm-content {
+      background-color: #1f2937;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .qdrant-confirm-title {
+      font-size: 1.1rem;
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+
+    .qdrant-confirm-text {
+      margin-bottom: 1.5rem;
+      color: #d1d5db;
+    }
+
+    .qdrant-confirm-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    .qdrant-confirm-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+
+    .qdrant-confirm-btn.cancel {
+      background-color: #4b5563;
+      color: #e5e7eb;
+      border: none;
+    }
+
+    .qdrant-confirm-btn.confirm {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+    }
 
     /* Filter styles */
     .filter-section {
@@ -814,6 +950,19 @@
 <body>
 <div class="container">
   <h1>Mürşit Feedback Sistemi</h1>
+  <!-- QDrant Panel -->
+  <div id="qdrant-panel" class="qdrant-panel">
+    <h3>Add to QDrant</h3>
+    <div class="qdrant-input-group">
+      <label for="qdrant-question">Question:</label>
+      <textarea id="qdrant-question" placeholder="Enter question text..."></textarea>
+    </div>
+    <div class="qdrant-input-group">
+      <label for="qdrant-cypher">Cypher Query:</label>
+      <textarea id="qdrant-cypher" placeholder="Enter cypher query..."></textarea>
+    </div>
+    <button id="send-to-qdrant" class="qdrant-send-btn">Send to QDrant</button>
+  </div>
 
   <!-- MongoDB Connection Status -->
   <div class="connection-status">
@@ -2915,6 +3064,9 @@
 
       if (!response.ok) {
         console.error('Error updating feedback:', await response.text());
+      } else if (newFeedback === 'positive') {
+        // Show QDrant confirmation dialog
+        showQdrantConfirmDialog(item);
       }
     } catch (error) {
       console.error('Failed to update feedback:', error);
@@ -3060,6 +3212,87 @@
       alert('Failed to update schema: ' + error.message);
     }
   }
+
+  // Show QDrant confirmation dialog
+  function showQdrantConfirmDialog(item) {
+    // Create dialog
+    const dialog = document.createElement('div');
+    dialog.className = 'qdrant-confirm-dialog';
+    dialog.innerHTML = `
+    <div class="qdrant-confirm-content">
+      <h3 class="qdrant-confirm-title">Add to QDrant</h3>
+      <p class="qdrant-confirm-text">Would you like to add this question to QDrant?</p>
+      <div class="qdrant-confirm-buttons">
+        <button class="qdrant-confirm-btn cancel">Cancel</button>
+        <button class="qdrant-confirm-btn confirm">Add to QDrant</button>
+      </div>
+    </div>
+  `;
+
+    // Add event listeners
+    const cancelBtn = dialog.querySelector('.cancel');
+    const confirmBtn = dialog.querySelector('.confirm');
+
+    cancelBtn.addEventListener('click', () => {
+      dialog.remove();
+    });
+
+    confirmBtn.addEventListener('click', () => {
+      dialog.remove();
+      fillQdrantForm(item);
+    });
+
+    document.body.appendChild(dialog);
+  }
+
+  // Fill QDrant form and scroll to top
+  function fillQdrantForm(item) {
+    // Get the form elements
+    const questionTextarea = document.getElementById('qdrant-question');
+    const cypherTextarea = document.getElementById('qdrant-cypher');
+
+    // Fill with data
+    questionTextarea.value = item.question || '';
+
+    // Fill cypher query if available
+    if (item.cypherQueries && item.cypherQueries.length > 0) {
+      cypherTextarea.value = item.cypherQueries[0] || '';
+    } else {
+      cypherTextarea.value = '';
+    }
+
+    // Scroll to top smoothly
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Highlight the textareas
+    questionTextarea.classList.add('highlighted');
+    cypherTextarea.classList.add('highlighted');
+
+    // Remove highlight after animation
+    setTimeout(() => {
+      questionTextarea.classList.remove('highlighted');
+      cypherTextarea.classList.remove('highlighted');
+    }, 2000);
+  }
+
+  // Event listener for the "Send to QDrant" button
+  document.addEventListener('DOMContentLoaded', function() {
+    const sendToQdrantBtn = document.getElementById('send-to-qdrant');
+
+    if (sendToQdrantBtn) {
+      sendToQdrantBtn.addEventListener('click', function() {
+        // For demo purposes - just clear the form and show an alert
+        const questionTextarea = document.getElementById('qdrant-question');
+        const cypherTextarea = document.getElementById('qdrant-cypher');
+
+        alert('Data sent to QDrant (Demo)');
+
+        // Clear the form
+        questionTextarea.value = '';
+        cypherTextarea.value = '';
+      });
+    }
+  });
 </script>
 
 <!-- Include fix scripts -->
