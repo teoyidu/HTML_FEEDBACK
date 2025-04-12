@@ -2602,36 +2602,37 @@
   }
 
   function applyFilters() {
+    console.log("Starting filter application with:", {
+      activeSchema,
+      activeFeedbackFilter,
+      showHidden,
+      searchQuery
+    });
+
+    // Start with full data
     let filtered = [...data];
 
+    // Apply schema filter if active
     if (activeSchema) {
+      console.log(`Filtering by schema: ${activeSchema}`);
       filtered = filtered.filter(item => item.schema === activeSchema);
     }
 
+    // Apply feedback filter if active
     if (activeFeedbackFilter) {
+      console.log(`Filtering by feedback: ${activeFeedbackFilter}`);
       filtered = filtered.filter(item => item.feedback === activeFeedbackFilter);
     }
 
+    // Apply hidden filter
     if (!showHidden) {
+      console.log('Filtering out hidden items');
       filtered = filtered.filter(item => !item.hidden);
     }
 
-    if (dateFrom || dateTo) {
-      filtered = filtered.filter(item => {
-        const itemDate = new Date(item.timestamp);
-
-        if (dateFrom && dateTo) {
-          return itemDate >= dateFrom && itemDate <= dateTo;
-        } else if (dateFrom) {
-          return itemDate >= dateFrom;
-        } else if (dateTo) {
-          return itemDate <= dateTo;
-        }
-        return true;
-      });
-    }
-
+    // Apply search query
     if (searchQuery) {
+      console.log(`Filtering by search query: ${searchQuery}`);
       filtered = filtered.filter(item =>
               (item.question && item.question.toLowerCase().includes(searchQuery)) ||
               (item.conversation && item.conversation.some(msg =>
@@ -2641,15 +2642,7 @@
       );
     }
 
-    filtered.sort((a, b) => {
-      const timeA = a.timestamp || 0;
-      const timeB = b.timestamp || 0;
-
-      return sortOrder === 'newest'
-              ? timeB - timeA
-              : timeA - timeB;
-    });
-
+    console.log(`Filter result: ${filtered.length} items remaining`);
     filteredData = filtered;
     renderItems();
   }
@@ -3039,18 +3032,45 @@
   // Handle positive feedback
   async function handlePositiveFeedback(id) {
     const item = data.find(item => item.id === id);
-    if (!item) return;
+    if (!item) {
+      console.error(`Item with id ${id} not found`);
+      return;
+    }
 
     // If already positive, remove feedback
     const newFeedback = item.feedback === 'positive' ? null : 'positive';
+    console.log(`Setting feedback for ${id} to ${newFeedback}`);
 
     // Update data locally first
-    data = data.map(item => {
-      if (item.id === id) {
-        return { ...item, feedback: newFeedback };
+    data = data.map(dataItem => {
+      if (dataItem.id === id) {
+        return { ...dataItem, feedback: newFeedback };
       }
-      return item;
+      return dataItem;
     });
+
+    // Update UI
+    const itemElement = document.querySelector(`.feedback-item[data-id="${id}"]`);
+    if (itemElement) {
+      // Update feedback buttons
+      const positiveBtn = itemElement.querySelector('.action-btn.positive');
+      if (positiveBtn) {
+        positiveBtn.style.backgroundColor = newFeedback === 'positive' ? '#10b981' : '#374151';
+      }
+
+      const negativeBtn = itemElement.querySelector('.action-btn.negative');
+      if (negativeBtn && newFeedback === 'positive') {
+        negativeBtn.style.backgroundColor = '#374151';
+      }
+
+      // Update item class
+      if (newFeedback === 'positive') {
+        itemElement.classList.add('positive');
+        itemElement.classList.remove('negative');
+      } else {
+        itemElement.classList.remove('positive');
+      }
+    }
 
     // Update MongoDB via API
     try {
@@ -3072,8 +3092,8 @@
       console.error('Failed to update feedback:', error);
     }
 
-    // Apply filters to update UI
-    applyFilters();
+    // Don't call applyFilters here - it resets the UI
+    // Instead, update just this element's styles
   }
 
   // Handle negative feedback
@@ -3305,5 +3325,6 @@
 <script src="pagination-fix.js"></script>
 <script src="similarity-fix.js"></script>
 <script src="debug-mode.js"></script>
+<script src="complete-filter-fix.js"></script>
 </body>
 </html>
