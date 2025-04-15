@@ -681,6 +681,47 @@ function parseMessages(messagesString) {
     }
 }
 
+// Add this endpoint to app.js - before the final line that starts the server
+// Add this around line 758, before the connectToMongo().then(() => { ... }); section
+
+// New endpoint to get all QDrant data
+app.get('/api/qdrant/data', async (req, res) => {
+    try {
+        if (!db) await connectToMongo();
+
+        // Check if QDrant service is available
+        if (!qdrantService || typeof qdrantService.getAllQdrantData !== 'function') {
+            return res.status(501).json({
+                error: 'QDrant service not available',
+                details: 'The QDrant service is not properly initialized or the getAllQdrantData function is missing'
+            });
+        }
+
+        // Get query parameters
+        const limit = req.query.limit ? parseInt(req.query.limit) : 100;
+        const schema = req.query.schema || '';
+
+        // Build filter object
+        const filters = {};
+        if (schema) filters.schema = schema;
+
+        // Get data from QDrant
+        const data = await qdrantService.getAllQdrantData(limit, filters);
+
+        res.json({
+            success: true,
+            count: data.length,
+            data: data
+        });
+    } catch (error) {
+        console.error('Error fetching QDrant data:', error);
+        res.status(500).json({
+            error: 'Failed to fetch QDrant data',
+            details: error.message || 'Unknown error'
+        });
+    }
+});
+
 // Start server
 connectToMongo().then(() => {
     app.listen(port, () => {

@@ -1255,3 +1255,86 @@
         }
     }
 })();
+
+// Add this function to make sure renderItems displays all fetched items
+function patchRenderItemsFunction() {
+    // Store original renderItems function
+    const originalRenderItems = window.renderItems;
+
+    // Create enhanced version that respects pageSize
+    window.renderItems = function() {
+        console.log(`Rendering items with pageSize: ${window.pageSize}`);
+
+        // Get required DOM elements
+        const feedbackItems = document.getElementById('feedback-items');
+        const noResults = document.getElementById('no-results');
+        const resultsCount = document.getElementById('results-count');
+
+        if (!feedbackItems || !noResults || !resultsCount) {
+            console.error("Critical DOM elements missing");
+            return;
+        }
+
+        // Make sure filteredData exists
+        if (!window.filteredData) {
+            window.filteredData = window.data ? [...window.data] : [];
+        }
+
+        // Update results count - use full count, not just displayed count
+        resultsCount.textContent = `Showing ${Math.min(window.pageSize || window.filteredData.length,
+            window.filteredData.length)} of ${window.filteredData.length} results`;
+
+        // Show no results message if needed
+        if (!window.filteredData.length) {
+            noResults.classList.remove('hidden');
+            feedbackItems.innerHTML = '';
+            return;
+        }
+
+        noResults.classList.add('hidden');
+
+        // Clear current items
+        feedbackItems.innerHTML = '';
+
+        try {
+            // If original function exists and isn't our patched version, call it
+            if (typeof originalRenderItems === 'function') {
+                originalRenderItems();
+
+                // Check if it rendered the right number of items
+                if (feedbackItems.children.length <= 20 && window.filteredData.length > 20 && window.pageSize > 20) {
+                    console.warn("Original renderItems limited display, using enhanced rendering");
+                    renderAllItems();
+                }
+            } else {
+                renderAllItems();
+            }
+        } catch (error) {
+            console.error("Error rendering items:", error);
+            renderAllItems(); // Fallback to our implementation
+        }
+
+        // Function to render all items according to pageSize
+        function renderAllItems() {
+            // Use the full pageSize for rendering, not just 20
+            window.filteredData.slice(0, window.pageSize || window.filteredData.length).forEach(item => {
+                // Create your item element here using the same format as your original renderItems
+                const itemElement = createItemElement(item);
+                feedbackItems.appendChild(itemElement);
+            });
+        }
+    };
+}
+
+// Make sure pageSize is properly set when fetching data
+function enhanceFetchDataFunction() {
+    const originalFetchData = window.fetchDataFromServer;
+
+    window.fetchDataFromServer = function(limit, page) {
+        // Update pageSize when fetching data
+        window.pageSize = limit;
+        console.log(`Fetching data with limit: ${limit}, setting pageSize: ${window.pageSize}`);
+
+        return originalFetchData(limit, page);
+    };
+}

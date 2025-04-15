@@ -136,6 +136,39 @@
       0%, 100% { border-color: #4b5563; }
       50% { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3); }
     }
+    /* Add these styles to the existing CSS (around line 1300) */
+
+    /* QDrant-specific styling */
+    .feedback-item.qdrant-item {
+      border-left: 4px solid #6366F1; /* Indigo color to indicate QDrant data */
+    }
+
+    .feedback-item.qdrant-item .schema-buttons {
+      background-color: #2e3445; /* Slightly different background */
+    }
+
+    .qdrant-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.5rem;
+      background-color: #6366F1;
+      color: white;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      margin-left: 0.5rem;
+    }
+
+    .qdrant-badge svg {
+      width: 12px;
+      height: 12px;
+      margin-right: 0.25rem;
+    }
+
+    /* QDrant button active state */
+    #qdrant-filter.active {
+      background-color: #6366F1;
+      color: white;
+    }
 
     /* QDrant Confirmation Dialog */
     .qdrant-confirm-dialog {
@@ -1021,6 +1054,14 @@
       </svg>
       Show Archived
     </button>
+    <button id="qdrant-filter" class="filter-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; margin-right: 4px;">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="16"></line>
+        <line x1="8" y1="12" x2="16" y2="12"></line>
+      </svg>
+      QDrant Data
+    </button>
   </div>
 
   <!-- Page Size Selection -->
@@ -1136,6 +1177,8 @@
   let sortOrder = 'newest'; // 'newest' or 'oldest'
   let dateFrom = null;
   let dateTo = null;
+  let showQdrantData = false;
+  let qdrantData = [];
 
   // Add these global variables near the top of your script (around line 400)
   // This ensures that any code trying to access these variables won't cause reference errors
@@ -1582,6 +1625,87 @@
     modal.classList.add('active');
   }
 
+  async function fetchQdrantData() {
+    try {
+      const connectionIndicator = getElement('connection-indicator', true);
+      const connectionText = getElement('connection-text', true);
+
+      connectionText.textContent = 'Fetching QDrant data...';
+
+      const queryParams = new URLSearchParams();
+      queryParams.append('limit', 100); // Adjust limit as needed
+
+      if (activeSchema) {
+        queryParams.append('schema', activeSchema);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/qdrant/data?${queryParams.toString()}`);
+
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Unknown error');
+      }
+
+      qdrantData = result.data.map(item => ({
+        id: item.id,
+        schema: item.schema || '',
+        question: item.message || '',
+        cypherQueries: item.cypher ? [item.cypher] : [],
+        feedback: 'positive', // QDrant data is always positive
+        hidden: false,
+        user: item.bot_version || 'QDrant',
+        datetime: formatDateTime(new Date()),
+        timestamp: Date.now(),
+        conversation: [
+          { role: 'user', message: item.message || 'No message available' }
+        ],
+        isQdrantData: true, // Flag to identify QDrant data
+        groupId: item.groupId || '',
+        originalData: item
+      }));
+
+      connectionText.textContent = `Found ${qdrantData.length} records in QDrant`;
+
+      return qdrantData;
+    } catch (error) {
+      console.error('Error fetching QDrant data:', error);
+      connectionText.textContent = 'Failed to fetch QDrant data: ' + error.message;
+      return [];
+    }
+  }
+
+  // Add this function to toggle QDrant data view
+  async function toggleQdrantDataView() {
+    const qdrantFilterBtn = document.getElementById('qdrant-filter');
+
+    if (!qdrantFilterBtn) return;
+
+    // Toggle state
+    showQdrantData = !showQdrantData;
+    qdrantFilterBtn.classList.toggle('active', showQdrantData);
+
+    if (showQdrantData) {
+      // Fetch QDrant data if not already loaded
+      if (qdrantData.length === 0) {
+        qdrantData = await fetchQdrantData();
+      }
+
+      // Replace current filtered data with QDrant data
+      filteredData = [...qdrantData];
+      renderItems();
+    } else {
+      // Go back to regular filtering
+      applyFilters();
+    }
+  }
+
+
+
   // Load or initialize DOM elements
   document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded, initializing application...');
@@ -1623,6 +1747,12 @@
       searchQuery = searchInput.value.toLowerCase();
       applyFilters();
     });
+
+    // QDrant filter button
+    const qdrantFilterBtn = getElement('qdrant-filter');
+    if (qdrantFilterBtn) {
+      qdrantFilterBtn.addEventListener('click', toggleQdrantDataView);
+    }
 
     // Setup schema buttons (already done above)
 
@@ -2606,9 +2736,43 @@
       activeSchema,
       activeFeedbackFilter,
       showHidden,
-      searchQuery
+      searchQuery,
+      showQdrantData
     });
 
+    // If we're showing QDrant data, skip regular filtering
+    if (showQdrantData) {
+      console.log("Showing QDrant data, skipping regular filters");
+
+      // If we have qdrantData and it's not empty, use that
+      if (qdrantData && qdrantData.length > 0) {
+        let filtered = [...qdrantData];
+
+        // Apply schema filter if active
+        if (activeSchema) {
+          console.log(`Filtering QDrant data by schema: ${activeSchema}`);
+          filtered = filtered.filter(item => item.schema === activeSchema);
+        }
+
+        // Apply search query to QDrant data
+        if (searchQuery) {
+          console.log(`Filtering QDrant data by search query: ${searchQuery}`);
+          filtered = filtered.filter(item =>
+                  (item.question && item.question.toLowerCase().includes(searchQuery)) ||
+                  (item.cypherQueries && item.cypherQueries.some(query =>
+                          query.toLowerCase().includes(searchQuery)
+                  ))
+          );
+        }
+
+        console.log(`QDrant filter result: ${filtered.length} items remaining`);
+        filteredData = filtered;
+        renderItems();
+        return;
+      }
+    }
+
+    // Regular filtering for non-QDrant data
     // Start with full data
     let filtered = [...data];
 
@@ -2648,9 +2812,11 @@
   }
 
   function renderItems() {
+
     const feedbackItems = document.getElementById('feedback-items');
     const noResults = document.getElementById('no-results');
     const resultsCount = document.getElementById('results-count');
+
 
     console.log("Rendering items, filtered data length:", filteredData.length);
 
@@ -2667,8 +2833,9 @@
 
       filteredData.slice(0, pageSize).forEach((item, index) => {
         const itemElement = document.createElement('div');
-        itemElement.className = 'feedback-item';
+        itemElement.className = `feedback-item${item.isQdrantData ? ' qdrant-item' : ''}`;
         itemElement.dataset.id = item.id;
+
 
         const schemaButtons = document.createElement('div');
         schemaButtons.className = 'schema-buttons';
@@ -2687,15 +2854,31 @@
           schemaButtons.appendChild(button);
         });
 
-        const contentArea = document.createElement('div');
-        contentArea.className = 'feedback-content';
-
+        // Update user info - add QDrant badge for QDrant items
         const userInfo = document.createElement('div');
         userInfo.className = 'feedback-user-info';
-        userInfo.innerHTML = `
-          <span class="user-name">User: ${item.user}</span>
-          <span class="datetime">${formatDateTime(item.datetime)}</span>
-        `;
+
+        // Add QDrant badge for QDrant items
+        if (item.isQdrantData) {
+          userInfo.innerHTML = `
+        <span class="user-name">User: ${item.user}
+          <span class="qdrant-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+            QDrant
+          </span>
+        </span>
+        <span class="datetime">${formatDateTime(item.datetime)}</span>
+      `;
+        } else {
+          userInfo.innerHTML = `
+        <span class="user-name">User: ${item.user}</span>
+        <span class="datetime">${formatDateTime(item.datetime)}</span>
+      `;
+        }
         contentArea.appendChild(userInfo);
 
         const buttonsContainer = document.createElement('div');
@@ -2796,6 +2979,50 @@
             openDataPopup('Document IDs', item.documentIds);
           }
         });
+
+        // For QDrant items, if they have a groupId, show it in additional data buttons
+        if (item.isQdrantData && item.groupId) {
+          const groupIdBtn = document.createElement('button');
+          groupIdBtn.className = 'data-btn group-id-btn';
+          groupIdBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+          <path d="M16 3v4"></path>
+          <path d="M8 3v4"></path>
+          <path d="M3 11h18"></path>
+        </svg>
+        Group: ${item.groupId}
+      `;
+          groupIdBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openDataPopup('Group Information', { groupId: item.groupId });
+          });
+
+          // Add to additional data buttons
+          additionalDataButtons.appendChild(groupIdBtn);
+        }
+
+        // For QDrant items, if they have a groupId, show it in additional data buttons
+        if (item.isQdrantData && item.groupId) {
+          const groupIdBtn = document.createElement('button');
+          groupIdBtn.className = 'data-btn group-id-btn';
+          groupIdBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+          <path d="M16 3v4"></path>
+          <path d="M8 3v4"></path>
+          <path d="M3 11h18"></path>
+        </svg>
+        Group: ${item.groupId}
+      `;
+          groupIdBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openDataPopup('Group Information', { groupId: item.groupId });
+          });
+
+          // Add to additional data buttons
+          additionalDataButtons.appendChild(groupIdBtn);
+        }
 
         // Create entity suggester button
         const entitySuggesterBtn = document.createElement('button');
@@ -3240,11 +3467,11 @@
     dialog.className = 'qdrant-confirm-dialog';
     dialog.innerHTML = `
     <div class="qdrant-confirm-content">
-      <h3 class="qdrant-confirm-title">Add to QDrant</h3>
-      <p class="qdrant-confirm-text">Would you like to add this question to QDrant?</p>
+      <h3 class="qdrant-confirm-title">QDrant'a ekle</h3>
+      <p class="qdrant-confirm-text">Bu soruyu QDrant'a eklemek ister misiniz? (VectorDB)</p>
       <div class="qdrant-confirm-buttons">
-        <button class="qdrant-confirm-btn cancel">Cancel</button>
-        <button class="qdrant-confirm-btn confirm">Add to QDrant</button>
+        <button class="qdrant-confirm-btn cancel">İptal</button>
+        <button class="qdrant-confirm-btn confirm">QDrant'a ekle</button>
       </div>
     </div>
   `;
