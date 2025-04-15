@@ -197,6 +197,186 @@
       border: none;
     }
 
+    /* QDrant View specific styles - add to the CSS file */
+
+    .qdrant-toggle-container {
+      margin: 1rem 0;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .qdrant-toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background-color: #6366F1;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .qdrant-toggle-btn:hover {
+      background-color: #4F46E5;
+    }
+
+    .qdrant-toggle-btn svg {
+      transition: transform 0.3s ease;
+    }
+
+    .qdrant-toggle-btn.active svg {
+      transform: rotate(45deg);
+    }
+
+    .qdrant-view-container {
+      margin-top: 1.5rem;
+    }
+
+    .qdrant-view-container h2 {
+      color: #F9FAFB;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .qdrant-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background-color: #1F2937;
+      border-radius: 0.5rem;
+    }
+
+    .qdrant-filter,
+    .qdrant-search {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .qdrant-select,
+    .qdrant-input {
+      width: 100%;
+      padding: 0.5rem;
+      background-color: #111827;
+      color: #F9FAFB;
+      border: 1px solid #374151;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+    }
+
+    .qdrant-select:focus,
+    .qdrant-input:focus {
+      outline: none;
+      border-color: #6366F1;
+      box-shadow: 0 0 0 1px #6366F1;
+    }
+
+    .qdrant-items-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+
+    .qdrant-item {
+      background-color: #1F2937;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      border-top: 4px solid #6366F1;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .qdrant-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .qdrant-item-header {
+      padding: 1rem;
+      background-color: #111827;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .qdrant-item-schema {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background-color: #4B5563;
+      color: white;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .qdrant-item-group {
+      color: #9CA3AF;
+      font-size: 0.75rem;
+    }
+
+    .qdrant-item-body {
+      padding: 1rem;
+    }
+
+    .qdrant-item-message {
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      color: #F9FAFB;
+      line-height: 1.5;
+    }
+
+    .qdrant-item-cypher {
+      padding: 0.75rem;
+      background-color: #111827;
+      border-radius: 0.375rem;
+      font-family: monospace;
+      font-size: 0.875rem;
+      color: #D1D5DB;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 1rem;
+      overflow-x: auto;
+    }
+
+    .qdrant-item-version {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.5rem;
+      background-color: #374151;
+      color: #D1D5DB;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+    }
+
+    .qdrant-no-items {
+      padding: 3rem;
+      text-align: center;
+      color: #9CA3AF;
+      background-color: #1F2937;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    /* Hide regular content when in QDrant view mode */
+    .qdrant-mode .filter-section,
+    .qdrant-mode .feedback-filters,
+    .qdrant-mode .page-size,
+    .qdrant-mode .sort-controls,
+    .qdrant-mode .date-range-filter,
+    .qdrant-mode .tabs-container,
+    .qdrant-mode #results-count,
+    .qdrant-mode #feedback-items,
+    .qdrant-mode #no-results,
+    .qdrant-mode .search-container {
+      display: none !important;
+    }
+
     /* Filter styles */
     .filter-section {
       display: flex;
@@ -964,6 +1144,42 @@
     <button id="send-to-qdrant" class="qdrant-send-btn">Send to QDrant</button>
   </div>
 
+  <div class="qdrant-toggle-container">
+    <button id="qdrant-toggle-btn" class="qdrant-toggle-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="16"></line>
+        <line x1="8" y1="12" x2="16" y2="12"></line>
+      </svg>
+      <span>Switch to QDrant View</span>
+    </button>
+  </div>
+
+  <!-- Add container for QDrant view (initially hidden) -->
+  <div id="qdrant-view-container" class="qdrant-view-container hidden">
+    <h2>QDrant Vector Database</h2>
+    <div class="qdrant-controls">
+      <div class="qdrant-filter">
+        <label for="qdrant-schema-filter">Filter by Schema:</label>
+        <select id="qdrant-schema-filter" class="qdrant-select">
+          <option value="">All Schemas</option>
+          <option value="Mesai">Mesai</option>
+          <option value="Mukavele">Mukavele</option>
+          <option value="Genel">Genel</option>
+        </select>
+      </div>
+      <div class="qdrant-search">
+        <input type="text" id="qdrant-search-input" placeholder="Search QDrant..." class="qdrant-input">
+      </div>
+    </div>
+    <div id="qdrant-items-container" class="qdrant-items-container">
+      <!-- QDrant items will be inserted here -->
+    </div>
+    <div id="qdrant-no-items" class="qdrant-no-items hidden">
+      No QDrant data found.
+    </div>
+  </div>
+
   <!-- MongoDB Connection Status -->
   <div class="connection-status">
     <div id="connection-indicator" class="status-indicator"></div>
@@ -1136,6 +1352,9 @@
   let sortOrder = 'newest'; // 'newest' or 'oldest'
   let dateFrom = null;
   let dateTo = null;
+  let isQdrantMode = false;
+  let qdrantData = [];
+  let filteredQdrantData = [];
 
   // Add these global variables near the top of your script (around line 400)
   // This ensures that any code trying to access these variables won't cause reference errors
@@ -1390,6 +1609,184 @@
     };
   }
 
+  async function fetchQdrantData() {
+    try {
+      const connectionIndicator = getElement('connection-indicator', true);
+      const connectionText = getElement('connection-text', true);
+
+      connectionText.textContent = 'Fetching QDrant data...';
+
+      const queryParams = new URLSearchParams();
+      queryParams.append('limit', 500); // Fetch a larger number for QDrant view
+
+      // Apply schema filter if selected
+      const schemaFilter = document.getElementById('qdrant-schema-filter');
+      if (schemaFilter && schemaFilter.value) {
+        queryParams.append('schema', schemaFilter.value);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/qdrant/data?${queryParams.toString()}`);
+
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Unknown error');
+      }
+
+      connectionText.textContent = `Found ${result.data.length} records in QDrant`;
+
+      // Store the QDrant data
+      qdrantData = result.data;
+      filteredQdrantData = [...qdrantData];
+
+      return qdrantData;
+    } catch (error) {
+      console.error('Error fetching QDrant data:', error);
+      connectionText.textContent = 'Failed to fetch QDrant data: ' + error.message;
+      return [];
+    }
+  }
+
+  // Add this function to filter QDrant data
+  function filterQdrantData() {
+    // Start with all data
+    let filtered = [...qdrantData];
+
+    // Apply schema filter
+    const schemaFilter = document.getElementById('qdrant-schema-filter');
+    if (schemaFilter && schemaFilter.value) {
+      filtered = filtered.filter(item => item.schema === schemaFilter.value);
+    }
+
+    // Apply search filter
+    const searchInput = document.getElementById('qdrant-search-input');
+    if (searchInput && searchInput.value.trim() !== '') {
+      const searchQuery = searchInput.value.trim().toLowerCase();
+      filtered = filtered.filter(item => {
+        const matchesMessage = item.message && item.message.toLowerCase().includes(searchQuery);
+        const matchesCypher = item.cypher && item.cypher.toLowerCase().includes(searchQuery);
+        const matchesSchema = item.schema && item.schema.toLowerCase().includes(searchQuery);
+        const matchesGroupId = item.groupId && item.groupId.toLowerCase().includes(searchQuery);
+
+        return matchesMessage || matchesCypher || matchesSchema || matchesGroupId;
+      });
+    }
+
+    // Update filtered data
+    filteredQdrantData = filtered;
+
+    // Render QDrant items
+    renderQdrantItems();
+  }
+
+  // Add this function to render QDrant items
+  function renderQdrantItems() {
+    const container = document.getElementById('qdrant-items-container');
+    const noItems = document.getElementById('qdrant-no-items');
+
+    if (!container || !noItems) return;
+
+    // Clear container
+    container.innerHTML = '';
+
+    // Show no items message if no data
+    if (filteredQdrantData.length === 0) {
+      noItems.classList.remove('hidden');
+      return;
+    }
+
+    // Hide no items message
+    noItems.classList.add('hidden');
+
+    // Render items
+    filteredQdrantData.forEach(item => {
+      // Create item element
+      const itemElement = document.createElement('div');
+      itemElement.className = 'qdrant-item';
+
+      // Create header
+      const header = document.createElement('div');
+      header.className = 'qdrant-item-header';
+      header.innerHTML = `
+      <span class="qdrant-item-schema">${item.schema || 'No Schema'}</span>
+      <span class="qdrant-item-group">${item.groupId || 'No Group'}</span>
+    `;
+
+      // Create body
+      const body = document.createElement('div');
+      body.className = 'qdrant-item-body';
+
+      // Add message
+      const message = document.createElement('div');
+      message.className = 'qdrant-item-message';
+      message.textContent = item.message || 'No message';
+
+      // Add cypher query
+      const cypher = document.createElement('div');
+      cypher.className = 'qdrant-item-cypher';
+      cypher.textContent = item.cypher || 'No Cypher query';
+
+      // Add version
+      const version = document.createElement('div');
+      version.className = 'qdrant-item-version';
+      version.textContent = `Version: ${item.bot_version || 'Unknown'}`;
+
+      // Assemble item
+      body.appendChild(message);
+      body.appendChild(cypher);
+      body.appendChild(version);
+
+      itemElement.appendChild(header);
+      itemElement.appendChild(body);
+
+      // Add to container
+      container.appendChild(itemElement);
+    });
+  }
+
+  // Add this function to toggle QDrant view mode
+  function toggleQdrantMode() {
+    const container = document.querySelector('.container');
+    const toggleButton = document.getElementById('qdrant-toggle-btn');
+    const qdrantContainer = document.getElementById('qdrant-view-container');
+
+    if (!container || !toggleButton || !qdrantContainer) return;
+
+    // Toggle mode
+    isQdrantMode = !isQdrantMode;
+
+    if (isQdrantMode) {
+      // Switch to QDrant mode
+      container.classList.add('qdrant-mode');
+      toggleButton.classList.add('active');
+      toggleButton.querySelector('span').textContent = 'Switch to Feedback View';
+      qdrantContainer.classList.remove('hidden');
+
+      // Fetch QDrant data if not already loaded
+      if (qdrantData.length === 0) {
+        fetchQdrantData().then(() => {
+          renderQdrantItems();
+        });
+      } else {
+        // Use existing data
+        renderQdrantItems();
+      }
+    } else {
+      // Switch back to regular mode
+      container.classList.remove('qdrant-mode');
+      toggleButton.classList.remove('active');
+      toggleButton.querySelector('span').textContent = 'Switch to QDrant View';
+      qdrantContainer.classList.add('hidden');
+
+      // Make sure regular data is displayed
+      renderItems();
+    }
+  }
+
   // Function to format date in a user-friendly way
   function formatDateTime(dateStr) {
     if (/\d{1,2}\/\d{1,2}\/\d{4}, \d{1,2}:\d{2}:\d{2}/.test(dateStr)) {
@@ -1606,9 +2003,43 @@
         schemaFilters.appendChild(button);
       });
     }
+    // Set up QDrant toggle button
+    const toggleButton = document.getElementById('qdrant-toggle-btn');
+    if (toggleButton) {
+      toggleButton.addEventListener('click', toggleQdrantMode);
+    }
+
+    // Set up QDrant filter controls
+    const schemaFilter = document.getElementById('qdrant-schema-filter');
+    if (schemaFilter) {
+      schemaFilter.addEventListener('change', function() {
+        if (isQdrantMode) {
+          if (this.value) {
+            // If a schema is selected, filter the existing data
+            filterQdrantData();
+          } else {
+            // If "All Schemas" is selected, fetch all data again
+            fetchQdrantData().then(() => {
+              renderQdrantItems();
+            });
+          }
+        }
+      });
+    }
+
+    // Set up QDrant search
+    const searchInput = document.getElementById('qdrant-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', function() {
+        if (isQdrantMode) {
+          filterQdrantData();
+        }
+      });
+    }
+
 
     // Initialize other UI elements
-    const searchInput = getElement('search-input');
+    // const searchInput = getElement('search-input');
     const schemaFilterButtons = document.querySelectorAll('#schema-filters .filter-btn');
     const positiveFilter = getElement('positive-filter');
     const negativeFilter = getElement('negative-filter');

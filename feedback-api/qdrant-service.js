@@ -15,248 +15,42 @@ const qdrantClient = new QdrantClient({
 });
 
 /**
- * Initialize QDrant collection for positive feedback
+ * Get all QDrant data
+ * @param {number} limit - Max number of results (default: 100)
+ * @param {object} filters - Optional filters
+ * @returns {Promise<Array>} - Array of QDrant records
  */
-async function initializeQdrant() {
+async function getAllQdrantData(limit = 100, filters = {}) {
   try {
-    // Check if collection exists
-    const collections = await qdrantClient.getCollections();
-    const collectionExists = collections.collections.some(c => c.name === COLLECTION_NAME);
-    
-    if (!collectionExists) {
-      console.log(`Creating QDrant collection: ${COLLECTION_NAME}`);
-      await qdrantClient.createCollection(COLLECTION_NAME, {
-        vectors: {
-          size: VECTOR_SIZE,
-          distance: "Cosine"
-        },
-        optimizers_config: {
-          default_segment_number: 2
+    // Build filter conditions
+    let filterConditions = {};
+
+    if (filters.schema) {
+      filterConditions.must = filterConditions.must || [];
+      filterConditions.must.push({
+        key: 'schema',
+        match: {
+          value: filters.schema
         }
       });
-      
-      // Create necessary payload indexes for faster filtering
-      await qdrantClient.createPayloadIndex(COLLECTION_NAME, {
-        field_name: "schema",
-        field_schema: "Keyword"
-      });
-      
-      await qdrantClient.createPayloadIndex(COLLECTION_NAME, {
-        field_name: "timestamp",
-        field_schema: "Integer"
-      });
-      
-      await qdrantClient.createPayloadIndex(COLLECTION_NAME, {
-        field_name: "conversationId",
-        field_schema: "Keyword"
-      });
-      
-      console.log(`QDrant collection ${COLLECTION_NAME} created successfully`);
-    } else {
-      console.log(`QDrant collection ${COLLECTION_NAME} already exists`);
     }
-    
-    return true;
-  } catch (error) {
-    console.error('Error initializing QDrant:', error);
-    return false;
-  }
-}
 
-/**
- * Generate embeddings for a conversation
- * @param {object} conversation - Conversation object
- * @returns {Promise<Float32Array>} - Vector embedding
- */
-async function generateEmbedding(conversation) {
-  try {
-    // For the initial implementation, we'll use a simple method
-    // In a production environment, use a proper embedding model
-    
-    // Extract text content from conversation
-    let text = '';
-    
-    if (Array.isArray(conversation.conversation)) {
-      text = conversation.conversation
-        .map(msg => `${msg.role}: ${msg.message}`)
-        .join('\n');
-    } else {
-      // Fallback to question if conversation is not available
-      text = conversation.question || '';
-    }
-    
-    // Generate a simple hash-based embedding - this is a placeholder
-    // In production, use a real embedding model
-    const simpleEmbedding = new Array(VECTOR_SIZE).fill(0);
-    
-    // Create a simple hashing function to generate vector values
-    for (let i = 0; i < text.length; i++) {
-      const charCode = text.charCodeAt(i);
-      simpleEmbedding[i % VECTOR_SIZE] += charCode / 255;
-    }
-    
-    // Normalize the embedding
-    const magnitude = Math.sqrt(simpleEmbedding.reduce((sum, val) => sum + val * val, 0));
-    return simpleEmbedding.map(val => val / (magnitude || 1));
-  } catch (error) {
-    console.error('Error generating embedding:', error);
-    throw error;
-  }
-}
-
-/**
- * Save a positive conversation to QDrant
- * @param {object} conversation - Conversation object to save
- * @returns {Promise<boolean>} - Success status
- */
-async function savePositiveConversation(conversation) {
-  try {
-    // Only save if feedback is positive
-    if (conversation.feedback !== 'positive') {
-      console.log(`Skipping non-positive conversation: ${conversation.id}`);
-      return false;
-    }
-    
-    // Generate embedding for conversation
-    const embedding = await generateEmbedding(conversation);
-    
-    // Prepare payload
-    const payload = {
-      id: conversation.id,
-      schema: conversation.schema || '',
-      question: conversation.question || '',
-      timestamp: conversation.timestamp || Date.now(),
-      userName: conversation.userName || '',
-      type: conversation.type || '',
-      conversationId: conversation.originalData?.conversationId || '',
-      conversation: conversation.conversation || []
-    };
-    
-    // Upsert the point in QDrant
-    await qdrantClient.upsert(COLLECTION_NAME, {
-      points: [{
-        id: conversation.id,
-        vector: embedding,
-        payload: payload
-      }]
+    // Get data from QDrant collection
+    const result = await qdrantClient.scroll(COLLECTION_NAME, {
+      limit: limit,
+      with_payload: true,
+      with_vectors: false,
+      filter: Object.keys(filterConditions).length > 0 ? filterConditions : undefined
     });
-    
-    console.log(`Saved positive conversation to QDrant: ${conversation.id}`);
-    return true;
-  } catch (error) {
-    console.error('Error saving to QDrant:', error);
-    return false;
-  }
-}
 
-/**
- * Update existing conversation in QDrant (for schema or message updates)
- * @param {string} id - Conversation ID
- * @param {object} updates - Updated fields
- * @returns {Promise<boolean>} - Success status
- */
-async function updateConversationInQdrant(id, updates) {
-  try {
-    // First check if this point exists in QDrant
-    const searchResult = await qdrantClient.retrieve(COLLECTION_NAME, {
-      ids: [id]
-    });
-    
-    // If point doesn't exist or empty result, no update needed
-    if (!searchResult || searchResult.length === 0) {
-      console.log(`Conversation ${id} not found in QDrant, no update needed`);
-      return false;
-    }
-    
-    // If updating messages, we need to regenerate the embedding
-    if (updates.conversation) {
-      // Fetch the full conversation from MongoDB to ensure we have all data
-      const fullConversation = await getConversationFromMongoDB(id);
-      
-      if (!fullConversation) {
-        console.error(`Failed to fetch full conversation ${id} from MongoDB`);
-        return false;
-      }
-      
-      // Only proceed if this is a positive conversation
-      if (fullConversation.feedback !== 'positive') {
-        console.log(`Conversation ${id} is no longer positive, removing from QDrant`);
-        await qdrantClient.delete(COLLECTION_NAME, {
-          points: [id]
-        });
-        return true;
-      }
-      
-      // Update conversation with new messages
-      fullConversation.conversation = updates.conversation;
-      
-      // Generate new embedding
-      const newEmbedding = await generateEmbedding(fullConversation);
-      
-      // Update both vector and payload
-      await qdrantClient.upsert(COLLECTION_NAME, {
-        points: [{
-          id: id,
-          vector: newEmbedding,
-          payload: {
-            ...fullConversation,
-            conversation: updates.conversation
-          }
-        }]
-      });
-    } else {
-      // For schema or other metadata updates, just update the payload
-      await qdrantClient.setPayload(COLLECTION_NAME, {
-        points: [id],
-        payload: updates
-      });
-    }
-    
-    console.log(`Updated conversation ${id} in QDrant`);
-    return true;
+    // Transform points to a more convenient format
+    return result.points.map(point => ({
+      id: point.id,
+      ...point.payload
+    }));
   } catch (error) {
-    console.error(`Error updating conversation ${id} in QDrant:`, error);
-    return false;
-  }
-}
-
-/**
- * Remove conversation from QDrant if feedback changes from positive
- * @param {string} id - Conversation ID
- * @param {string} feedback - New feedback status
- * @returns {Promise<boolean>} - Success status
- */
-async function handleFeedbackChange(id, feedback) {
-  try {
-    // If feedback is positive, get the full conversation and save to QDrant
-    if (feedback === 'positive') {
-      const conversation = await getConversationFromMongoDB(id);
-      if (conversation) {
-        return await savePositiveConversation(conversation);
-      }
-      return false;
-    }
-    
-    // If feedback is no longer positive, remove from QDrant
-    if (feedback !== 'positive') {
-      // Check if point exists in QDrant
-      const searchResult = await qdrantClient.retrieve(COLLECTION_NAME, {
-        ids: [id]
-      });
-      
-      // If point exists, delete it
-      if (searchResult && searchResult.length > 0) {
-        await qdrantClient.delete(COLLECTION_NAME, {
-          points: [id]
-        });
-        console.log(`Removed non-positive conversation ${id} from QDrant`);
-      }
-    }
-    
-    return true;
-  } catch (error) {
-    console.error(`Error handling feedback change for ${id}:`, error);
-    return false;
+    console.error('Error fetching data from QDrant:', error);
+    return [];
   }
 }
 
@@ -499,9 +293,8 @@ async function saveConversationToQdrant(conversationData) {
 // Update the module.exports at the end of the file
 module.exports = {
   initializeQdrant,
-  savePositiveConversation,
-  updateConversationInQdrant,
-  handleFeedbackChange,
   searchSimilarConversations,
-  saveConversationToQdrant // Add this new function
+  saveConversationToQdrant,
+  getAllQdrantData, // Add the new function
+  VECTOR_SIZE // Export the vector size constant for initialization scripts
 };
