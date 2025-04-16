@@ -196,6 +196,149 @@
       color: white;
       border: none;
     }
+    /* Schema Toggle Switch Styles */
+    .schema-toggle-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      background-color: #1f2937;
+      border-radius: 0.5rem;
+      border: 1px solid #374151;
+    }
+
+    .schema-toggle-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 0.5rem;
+    }
+
+    .schema-option {
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    .schema-option.active {
+      color: #2563eb;
+    }
+
+    .schema-option.inactive {
+      color: #6b7280;
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 30px;
+      margin: 0 1rem;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #374151;
+      transition: .4s;
+      border-radius: 34px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+      background-color: #2563eb;
+    }
+
+    input:checked + .toggle-slider:before {
+      transform: translateX(30px);
+    }
+
+    /* Schema Icon Selection Styles */
+    .schema-selector-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #374151;
+    }
+
+    .schema-option-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: transparent;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #9ca3af;
+      flex: 1;
+    }
+
+    .schema-option-btn .schema-icon {
+      width: 30px;
+      height: 30px;
+      margin-bottom: 0.5rem;
+      transition: all 0.2s ease;
+      stroke: #9ca3af;
+      fill: none;
+    }
+
+    .schema-option-btn .schema-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .schema-option-btn.selected {
+      background-color: #1e3a8a;
+      color: white;
+    }
+
+    .schema-option-btn.selected .schema-icon {
+      stroke: white;
+    }
+
+    .schema-option-btn:hover:not(.selected) {
+      background-color: #374151;
+      color: #d1d5db;
+    }
+
+    .schema-option-btn:hover:not(.selected) .schema-icon {
+      stroke: #d1d5db;
+    }
+
+    .schema-selector-divider {
+      width: 1px;
+      height: 40px;
+      background-color: #374151;
+      margin: 0 0.5rem;
+    }
 
     /* QDrant View specific styles - add to the CSS file */
 
@@ -1133,6 +1276,94 @@
   <!-- QDrant Panel -->
   <div id="qdrant-panel" class="qdrant-panel">
     <h3>Add to QDrant</h3>
+    <div class="schema-selector-container">
+      <button id="mesai-option" class="schema-option-btn selected" data-schema="mesai">
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="29" height="29" viewBox="0 0 29 29">
+          <defs>
+            <clipPath id="clip-path">
+              <rect id="Rectangle_8976" data-name="Rectangle 8976" width="29" height="29" rx="5" transform="translate(-0.422 -0.329)" fill="#0d4150" stroke="#0d4150" stroke-width="12"/>
+            </clipPath>
+            <linearGradient id="linear-gradient" x1="0.5" x2="1.168" y2="1.46" gradientUnits="objectBoundingBox">
+              <stop offset="0" stop-color="#0f2430"/>
+              <stop offset="1" stop-color="#051e2c"/>
+            </linearGradient>
+            <clipPath id="clip-path-2">
+              <rect id="Rectangle_8976-2" data-name="Rectangle 8976" width="29" height="29" rx="8" transform="translate(-0.422 -0.329)" fill="#0d4150" stroke="#0d4150" stroke-width="12"/>
+            </clipPath>
+            <clipPath id="clip-path-3">
+              <rect id="Rectangle_30184" data-name="Rectangle 30184" width="29" height="29" rx="8" transform="translate(-0.422 -0.329)" fill="#adfd4f"/>
+            </clipPath>
+          </defs>
+          <g id="mesai-logo" transform="translate(0.422 0.329)">
+            <g id="Group_184126" data-name="Group 184126" transform="translate(0 0)">
+              <g id="Group_11991" data-name="Group 11991" transform="translate(0 0)" style="isolation: isolate">
+                <rect id="Rectangle_9176" data-name="Rectangle 9176" width="29" height="29" rx="5" transform="translate(-0.422 -0.329)" fill="url(#linear-gradient)"/>
+              </g>
+              <g id="Group_46636" data-name="Group 46636" transform="translate(0 0)">
+                <g id="Mask_Group_441" data-name="Mask Group 441" clip-path="url(#clip-path-3)">
+                  <g id="Group_46628" data-name="Group 46628" transform="translate(3.219 3.73)">
+                    <g id="Group_46629" data-name="Group 46629">
+                      <path id="Path_78116" data-name="Path 78116" d="M36.774,27.3a2.15,2.15,0,0,0,.032.313,1.048,1.048,0,0,0,.9.743,1.076,1.076,0,0,0,1.045-.571c.318-.521.616-1.055.919-1.585a1.086,1.086,0,0,0,.044-1,.931.931,0,0,0-.822-.584,1,1,0,0,0-1.032.5c-.324.543-.636,1.092-.947,1.643a.845.845,0,0,0-.137.549m-7.9-2.69a1.084,1.084,0,0,0-.316.037,1.072,1.072,0,0,0-.562,1.545c.3.546.619,1.084.937,1.621a1,1,0,0,0,.929.537,1.06,1.06,0,0,0,.882-1.635c-.254-.459-.531-.906-.783-1.366a1.142,1.142,0,0,0-1.086-.739m-.88,5.647a1.046,1.046,0,0,0-.566-1.022c-.519-.29-1.03-.593-1.542-.894a1.062,1.062,0,1,0-1.067,1.834c.53.3,1.051.613,1.58.914a1.048,1.048,0,0,0,1.056.029.89.89,0,0,0,.539-.861" transform="translate(-22.868 -23.25)" fill="#adfd4f"/>
+                      <path id="Path_78117" data-name="Path 78117" d="M0,179.172a.09.09,0,0,0,.085-.078,1.029,1.029,0,0,1,1.066-.772c.611-.016,1.223-.01,1.835,0a1.056,1.056,0,0,1,1.027,1.463,1.13,1.13,0,0,1-1.005.667c-.626.007-1.252.017-1.877,0a1.018,1.018,0,0,1-1.045-.771A.09.09,0,0,0,0,179.6Z" transform="translate(0 -168.462)" fill="#adfd4f" opacity="0.2"/>
+                      <path id="Path_78119" data-name="Path 78119" d="M180.3,0c.061.074.155.061.231.1a1.1,1.1,0,0,1,.61,1.041,17.536,17.536,0,0,1-.026,2.261,1.08,1.08,0,0,1-1.028.96,1.109,1.109,0,0,1-1.037-.946c-.048-.64.014-1.281-.032-1.918a1.334,1.334,0,0,1,.813-1.5Z" transform="translate(-169.126)" fill="#adfd4f"/>
+                      <path id="Path_78122" data-name="Path 78122" d="M251.6,27.3a.845.845,0,0,1,.137-.549c.311-.55.624-1.1.947-1.643a1,1,0,0,1,1.032-.5.931.931,0,0,1,.822.584,1.086,1.086,0,0,1-.044,1c-.3.531-.6,1.064-.919,1.585a1.076,1.076,0,0,1-1.045.571,1.048,1.048,0,0,1-.9-.743,2.153,2.153,0,0,1-.032-.313" transform="translate(-237.698 -23.25)" fill="#adfd4f"/>
+                      <path id="Path_78123" data-name="Path 78123" d="M27.913,45.087a1.04,1.04,0,0,0-1.565-.923c-.557.307-1.1.632-1.656.945a1.17,1.17,0,0,0-.5,1.155,1.064,1.064,0,0,0,1.584.661c.439-.272.9-.514,1.349-.766.424-.236.807-.5.784-1.073" transform="translate(-22.835 -30.17)" fill="#adfd4f" opacity="0.3"/>
+                      <path id="Path_78124" data-name="Path 78124" d="M29.844,51.164a1.032,1.032,0,0,0,1.923.606c.338-.532.633-1.088.947-1.634a1.047,1.047,0,0,0,.119-.845.9.9,0,0,0-.788-.743.964.964,0,0,0-1.058.4c-.307.494-.594,1-.885,1.5a1.079,1.079,0,0,0-.257.713" transform="translate(-24.853 -31.769)" fill="#adfd4f" opacity="0.4"/>
+                    </g>
+                    <path id="Path_78133" data-name="Path 78133" d="M3.746,2.061A.993.993,0,0,0,3.259,1.1C2.69.749,2.107.423,1.516.112A1.064,1.064,0,0,0,.152.494,1.065,1.065,0,0,0,.507,1.942,14.656,14.656,0,0,0,2.754,3.07a1.018,1.018,0,0,0,.993-1.009" transform="translate(17.549 10.497) rotate(-30)" fill="#adfd4f" opacity="0.8"/>
+                    <path id="Path_78134" data-name="Path 78134" d="M307.414,90.553a1.041,1.041,0,0,1-.56.971q-.812.477-1.633.938a1.057,1.057,0,0,1-1.421-1.439c.191-.355.542-.481.847-.672.371-.232.762-.431,1.136-.658a1.094,1.094,0,0,1,1.53.41.886.886,0,0,1,.1.45" transform="translate(-286.889 -84.588)" fill="#adfd4f" opacity="0.9"/>
+                    <path id="Path_78135" data-name="Path 78135" d="M51.9,46.088a.993.993,0,0,0-.488-.962c-.568-.349-1.152-.675-1.742-.987a1.046,1.046,0,0,0-1.01,1.83A14.656,14.656,0,0,0,50.909,47.1a1.018,1.018,0,0,0,.993-1.009" transform="translate(-31.378 -30.166)" fill="#adfd4f" opacity="0.7"/>
+                    <path id="Path_78136" data-name="Path 78136" d="M37.481,52.18h0q0,.512,0,1.024a1.038,1.038,0,0,0,1.286.964,1.055,1.055,0,0,0,.828-1.113c.02-.59.008-1.18,0-1.771a1.7,1.7,0,0,0-.06-.373,1.059,1.059,0,0,0-1.356-.7,1.084,1.084,0,0,0-.706.967c.023.333,0,.668,0,1" transform="translate(-27.573 -32.353)" fill="#adfd4f" opacity="0.5"/>
+                    <path id="Path_78137" data-name="Path 78137" d="M44.715,48.538c-.113.016-.21,0-.31.026a1.054,1.054,0,0,0-.616,1.508c.313.565.633,1.128.968,1.681a1,1,0,0,0,.96.535,1.07,1.07,0,0,0,.838-1.634q-.444-.741-.858-1.5a1.063,1.063,0,0,0-.981-.616" transform="translate(-29.775 -31.773)" fill="#adfd4f" opacity="0.6"/>
+                  </g>
+                </g>
+                <path id="Path_78130" data-name="Path 78130" d="M-11901.028-9878.131a.967.967,0,0,1-.682-.282l-1.329-1.328a.967.967,0,0,1,0-1.365.965.965,0,0,1,1.366,0l.645.645,2.54-2.539a.965.965,0,0,1,1.365,0,.964.964,0,0,1,0,1.365l-3.221,3.223A.97.97,0,0,1-11901.028-9878.131Z" transform="translate(11914.906 9895.346)" fill="none" stroke="#9ffd53" stroke-linecap="round" stroke-width="1"/>
+              </g>
+            </g>
+          </g>
+        </svg>
+
+<!--        <span class="schema-label">Mesai</span>-->
+      </button>
+
+      <div class="schema-selector-divider"></div>
+
+      <button id="mukavele-option" class="schema-option-btn" data-schema="mukavele">
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="49" height="49" viewBox="0 0 49 49">
+          <defs>
+            <clipPath id="clip-path">
+              <rect id="Rectangle_8976" data-name="Rectangle 8976" width="49" height="49" rx="8" fill="#0d4150" stroke="#0d4150" stroke-width="12"/>
+            </clipPath>
+            <filter id="Path_17571" x="9.084" y="-11.168" width="60.113" height="60.169" filterUnits="userSpaceOnUse">
+              <feOffset input="SourceAlpha"/>
+              <feGaussianBlur stdDeviation="7.5" result="blur"/>
+              <feFlood flood-opacity="0.349"/>
+              <feComposite operator="in" in2="blur"/>
+              <feComposite in="SourceGraphic"/>
+            </filter>
+          </defs>
+          <g id="Group_11327" data-name="Group 11327" transform="translate(-0.393 0)">
+            <rect id="Rectangle_9176" data-name="Rectangle 9176" width="49" height="49" rx="8" transform="translate(0.393 0)" fill="#05323f"/>
+            <g id="Group_10857" data-name="Group 10857" transform="translate(0.393 0)">
+              <g id="Mask_Group_301" data-name="Mask Group 301" transform="translate(0 0)" clip-path="url(#clip-path)">
+                <g id="Group_10608" data-name="Group 10608" transform="translate(-7.534 3.631)">
+                  <path id="Path_17572" data-name="Path 17572" d="M5.261,5.263V49.188H36.354l-.121-37.269L29.7,5.837,5.261,5.263M3.5,0,29.237.034,41.614,12.559V50.948a3.5,3.5,0,0,1-3.5,3.5H3.5a3.5,3.5,0,0,1-3.5-3.5V3.5A3.5,3.5,0,0,1,3.5,0ZM41.614,12.307v.253C41.614,12.37,41.614,12.307,41.614,12.307Z" transform="matrix(0.966, 0.259, -0.259, 0.966, 14.092, 0)" fill="#3ffde4"/>
+                  <g id="Group_10606" data-name="Group 10606" transform="matrix(0.966, 0.259, -0.259, 0.966, 16.898, 21.89)">
+                    <path id="Path_17568" data-name="Path 17568" d="M23.9,1.944H.863A.923.923,0,0,1,0,.972.922.922,0,0,1,.863,0H23.9a.922.922,0,0,1,.863.972A.923.923,0,0,1,23.9,1.944Z" transform="translate(0 0)" fill="#3ffde4"/>
+                    <path id="Path_17569" data-name="Path 17569" d="M23.9,1.944H.863A.923.923,0,0,1,0,.972.922.922,0,0,1,.863,0H23.9a.922.922,0,0,1,.863.972A.923.923,0,0,1,23.9,1.944Z" transform="translate(0 5.834)" fill="#3ffde4"/>
+                    <path id="Path_17570" data-name="Path 17570" d="M13.953,1.944H.972A.972.972,0,1,1,.972,0h12.98a.972.972,0,1,1,0,1.944Z" transform="translate(0 11.668)" fill="#3ffde4"/>
+                  </g>
+                  <g transform="matrix(1, 0, 0, 1, 7.53, -3.63)" filter="url(#Path_17571)">
+                    <path id="Path_17571-2" data-name="Path 17571" d="M.007,0,12.323,12.4h0L3.464,12.4A3.471,3.471,0,0,1,0,8.916L0,4.374Z" transform="matrix(0.97, 0.26, -0.26, 0.97, 34.79, 11.33)" fill="#3ffde4"/>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+        </svg>
+        <!--        <span class="schema-label">Mukavele</span>-->
+      </button>
+    </div>
     <div class="qdrant-input-group">
       <label for="qdrant-question">Question:</label>
       <textarea id="qdrant-question" placeholder="Enter question text..."></textarea>
@@ -1142,6 +1373,7 @@
       <textarea id="qdrant-cypher" placeholder="Enter cypher query..."></textarea>
     </div>
     <button id="send-to-qdrant" class="qdrant-send-btn">Send to QDrant</button>
+    </div>
   </div>
 
   <div class="qdrant-toggle-container">
@@ -3807,6 +4039,113 @@
             if (isQdrantMode) {
               await fetchQdrantData();
               renderQdrantItems();
+            }
+          } else {
+            throw new Error(result.error || 'Unknown error occurred');
+          }
+        } catch (error) {
+          console.error('Error saving to QDrant:', error);
+          alert(`Failed to save to QDrant: ${error.message}`);
+        } finally {
+          // Re-enable button
+          sendToQdrantBtn.disabled = false;
+          sendToQdrantBtn.textContent = 'Send to QDrant';
+        }
+      });
+    }
+  });
+  // Event listeners for the icon-based schema selection
+  document.addEventListener('DOMContentLoaded', function() {
+    const mesaiOption = document.getElementById('mesai-option');
+    const mukaveleOption = document.getElementById('mukavele-option');
+
+    // Variable to track the current selected schema
+    let selectedSchema = 'mesai'; // Default schema
+
+    if (mesaiOption && mukaveleOption) {
+      // Add click event listeners to schema options
+      mesaiOption.addEventListener('click', function() {
+        setSelectedSchema('mesai');
+      });
+
+      mukaveleOption.addEventListener('click', function() {
+        setSelectedSchema('mukavele');
+      });
+
+      // Function to handle schema selection
+      function setSelectedSchema(schema) {
+        selectedSchema = schema;
+
+        if (schema === 'mesai') {
+          mesaiOption.classList.add('selected');
+          mukaveleOption.classList.remove('selected');
+        } else {
+          mesaiOption.classList.remove('selected');
+          mukaveleOption.classList.add('selected');
+        }
+      }
+    }
+
+    // Modify the Send to QDrant button event listener to use the selected schema
+    const sendToQdrantBtn = document.getElementById('send-to-qdrant');
+
+    if (sendToQdrantBtn) {
+      // Store the original click handler to avoid duplicate listeners
+      const originalClickHandler = sendToQdrantBtn.onclick;
+
+      // Remove original click handler if it exists
+      if (originalClickHandler) {
+        sendToQdrantBtn.removeEventListener('click', originalClickHandler);
+      }
+
+      // Add new click handler
+      sendToQdrantBtn.addEventListener('click', async function() {
+        const questionTextarea = document.getElementById('qdrant-question');
+        const cypherTextarea = document.getElementById('qdrant-cypher');
+
+        // Validate input
+        if (!questionTextarea.value.trim()) {
+          alert('Please enter a question');
+          return;
+        }
+
+        // Disable button while processing
+        sendToQdrantBtn.disabled = true;
+        sendToQdrantBtn.textContent = 'Sending...';
+
+        try {
+          // Prepare the data with the selected schema
+          const data = {
+            message: questionTextarea.value.trim(),
+            cypher: cypherTextarea.value.trim(),
+            schema: selectedSchema, // Use the selected schema value
+            timestamp: Date.now()
+          };
+
+          console.log('Sending to QDrant with schema:', selectedSchema);
+
+          // Send to backend
+          const response = await fetch(`${API_BASE_URL}/qdrant/save`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            alert('Successfully saved to QDrant!');
+
+            // Clear the form
+            questionTextarea.value = '';
+            cypherTextarea.value = '';
+
+            // Refresh QDrant data if in QDrant view mode
+            if (window.isQdrantMode) {
+              await window.fetchQdrantData();
+              window.renderQdrantItems();
             }
           } else {
             throw new Error(result.error || 'Unknown error occurred');
