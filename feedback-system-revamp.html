@@ -1163,9 +1163,9 @@
         <label for="qdrant-schema-filter">Filter by Schema:</label>
         <select id="qdrant-schema-filter" class="qdrant-select">
           <option value="">All Schemas</option>
-          <option value="Mesai">Mesai</option>
-          <option value="Mukavele">Mukavele</option>
-          <option value="Genel">Genel</option>
+          <option value="mesai">Mesai</option>
+          <option value="mukavele">Mukavele</option>
+          <option value="null">No Schema</option>
         </select>
       </div>
       <div class="qdrant-search">
@@ -1621,11 +1621,17 @@
 
       // Apply schema filter if selected
       const schemaFilter = document.getElementById('qdrant-schema-filter');
-      if (schemaFilter && schemaFilter.value) {
+      if (schemaFilter) {
+        // Always send the schema parameter, even if empty
+        // This ensures null/empty handling on the backend
+        console.log(`Schema filter value: "${schemaFilter.value}"`);
         queryParams.append('schema', schemaFilter.value);
       }
 
-      const response = await fetch(`${API_BASE_URL}/qdrant/data?${queryParams.toString()}`);
+      const apiUrl = `${API_BASE_URL}/qdrant/data?${queryParams.toString()}`;
+      console.log(`Fetching QDrant data from: ${apiUrl}`);
+
+      const response = await fetch(apiUrl);
 
       if (!response.ok) {
         throw new Error(`API responded with status: ${response.status}`);
@@ -1637,6 +1643,7 @@
         throw new Error(result.error || 'Unknown error');
       }
 
+      console.log(`Received ${result.data.length} records from QDrant`);
       connectionText.textContent = `Found ${result.data.length} records in QDrant`;
 
       // Store the QDrant data
@@ -1658,8 +1665,22 @@
 
     // Apply schema filter
     const schemaFilter = document.getElementById('qdrant-schema-filter');
-    if (schemaFilter && schemaFilter.value) {
-      filtered = filtered.filter(item => item.schema === schemaFilter.value);
+    if (schemaFilter) {
+      const schemaValue = schemaFilter.value;
+      console.log(`Filtering by schema: "${schemaValue}"`);
+
+      if (schemaValue) {
+        // Case-insensitive schema comparison
+        filtered = filtered.filter(item => {
+          // Handle null schemas
+          if (schemaValue === 'null') {
+            return !item.schema || item.schema === '';
+          }
+
+          // Case-insensitive match
+          return item.schema && item.schema.toLowerCase() === schemaValue.toLowerCase();
+        });
+      }
     }
 
     // Apply search filter
@@ -1675,6 +1696,8 @@
         return matchesMessage || matchesCypher || matchesSchema || matchesGroupId;
       });
     }
+
+    console.log(`Filtering resulted in ${filtered.length} items`);
 
     // Update filtered data
     filteredQdrantData = filtered;
@@ -1799,11 +1822,17 @@
       if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(dateStr)) {
         date = new Date(dateStr);
       } else if (/^\d{10}$/.test(dateStr)) {
-        date = new Date(parseInt(dateStr) * 1000);
+        date = new Date(parseInt(dateStr) * 1000); // seconds
       } else if (/^\d{13}$/.test(dateStr)) {
-        date = new Date(parseInt(dateStr));
+        date = new Date(parseInt(dateStr)); // milliseconds
       } else {
-        date = new Date(dateStr);
+        date = new Date(dateStr); // fallback
+      }
+    } else if (typeof dateStr === 'number') {
+      if (dateStr < 1e12) {
+        date = new Date(dateStr * 1000); // number in seconds
+      } else {
+        date = new Date(dateStr); // number in milliseconds
       }
     } else if (dateStr instanceof Date) {
       date = dateStr;
@@ -1820,12 +1849,14 @@
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      timeZone: 'UTC' // optional, depends on if you want local or UTC
     };
 
-    return date.toLocaleDateString(undefined, options);
+    return date.toLocaleString(undefined, options);
   }
-
   // Helper function to render formatted content with better HTML handling
   function renderFormattedContent(text) {
     if (!text) return '';

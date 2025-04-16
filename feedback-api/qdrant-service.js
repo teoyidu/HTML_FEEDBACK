@@ -23,18 +23,38 @@ const qdrantClient = new QdrantClient({
  */
 async function getAllQdrantData(limit = 100, filters = {}) {
   try {
+    console.log('Getting QDrant data with filters:', JSON.stringify(filters));
+
     // Build filter conditions
     let filterConditions = {};
 
-    if (filters.schema) {
+    if (filters.schema !== undefined) {
       filterConditions.must = filterConditions.must || [];
-      filterConditions.must.push({
-        key: 'schema',
-        match: {
-          value: filters.schema
-        }
-      });
+
+      // If filter is null or empty string, look for records with empty schema
+      if (filters.schema === null || filters.schema === '') {
+        filterConditions.must.push({
+          key: 'schema',
+          match: {
+            value: ''
+          }
+        });
+      } else {
+        // Use case-insensitive match for schema
+        // QDrant doesn't natively support case-insensitive search, so lowercase both sides
+        const schemaValue = filters.schema.toLowerCase();
+
+        // For QDrant version 1.0.0 and above, you can use the match operator with case-insensitive
+        filterConditions.must.push({
+          key: 'schema',
+          match: {
+            value: schemaValue
+          }
+        });
+      }
     }
+
+    console.log('Using filter conditions:', JSON.stringify(filterConditions));
 
     // Get data from QDrant collection
     const result = await qdrantClient.scroll(COLLECTION_NAME, {
@@ -43,6 +63,8 @@ async function getAllQdrantData(limit = 100, filters = {}) {
       with_vectors: false,
       filter: Object.keys(filterConditions).length > 0 ? filterConditions : undefined
     });
+
+    console.log(`Found ${result.points.length} results in QDrant`);
 
     // Transform points to a more convenient format
     return result.points.map(point => ({
