@@ -9,9 +9,10 @@ const COLLECTION_NAME = process.env.QDRANT_COLLECTION_NAME || 'positive_feedback
 const VECTOR_SIZE = 384; // Default for MiniLM model
 
 // Initialize QDrant Client
-const qdrantClient = new QdrantClient({ 
+const qdrantClient = new QdrantClient({
   url: QDRANT_URL,
-  apiKey: QDRANT_API_KEY
+  apiKey: QDRANT_API_KEY,
+  checkCompatibility: false // Disable version compatibility check
 });
 
 /**
@@ -289,6 +290,79 @@ async function saveConversationToQdrant(conversationData) {
   }
 }
 
+
+// Add these functions to qdrant-service.js before the module.exports block (around line 221)
+
+/**
+ * Initialize QDrant collection
+ * @returns {Promise<boolean>} Success status
+ */
+async function initializeQdrant() {
+  try {
+    console.log(`Initializing QDrant collection: ${COLLECTION_NAME}`);
+
+    // Check if collection exists
+    const collections = await qdrantClient.getCollections();
+    const collectionExists = collections.collections.some(c => c.name === COLLECTION_NAME);
+
+    if (collectionExists) {
+      console.log(`Collection ${COLLECTION_NAME} already exists`);
+      return true;
+    }
+
+    // Create collection with specified vector size
+    await qdrantClient.createCollection(COLLECTION_NAME, {
+      vectors: {
+        size: VECTOR_SIZE,
+        distance: "Cosine"
+      }
+    });
+
+    console.log(`Created QDrant collection: ${COLLECTION_NAME}`);
+    return true;
+  } catch (error) {
+    console.error('Error initializing QDrant:', error);
+    return false;
+  }
+}
+
+/**
+ * Generate embedding for text using a simple hashing technique
+ * This is a placeholder for a real ML-based embedding function
+ * @param {object} data - Data to generate embedding for
+ * @returns {Promise<number[]>} - Vector embedding
+ */
+async function generateEmbedding(data) {
+  // This is a placeholder function - in a real application, you would use
+  // a proper embedding model like OpenAI's text-embedding API or a local model
+  try {
+    const text = data.question || data.message || '';
+    if (!text) {
+      throw new Error('No text provided for embedding');
+    }
+
+    // Create a simple deterministic vector from the text
+    // NOT FOR PRODUCTION - just a demo implementation
+    const vector = new Array(VECTOR_SIZE).fill(0);
+
+    for (let i = 0; i < text.length; i++) {
+      const charCode = text.charCodeAt(i);
+      const index = i % VECTOR_SIZE;
+      vector[index] = (vector[index] + (charCode / 255)) % 1; // Normalize to 0-1
+    }
+
+    // Normalize vector to unit length
+    const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
+    const normalizedVector = vector.map(val => val / (magnitude || 1));
+
+    return normalizedVector;
+  } catch (error) {
+    console.error('Error generating embedding:', error);
+    // Return a random vector as fallback
+    return Array.from({length: VECTOR_SIZE}, () => Math.random());
+  }
+}
+
 // Simplified set of functions for the initial integration
 // Update the module.exports at the end of the file
 module.exports = {
@@ -298,3 +372,75 @@ module.exports = {
   getAllQdrantData, // Add the new function
   VECTOR_SIZE // Export the vector size constant for initialization scripts
 };
+
+// Add these functions to qdrant-service.js after the module.exports line
+
+/**
+ * Initialize QDrant collection
+ * @returns {Promise<boolean>} Success status
+ */
+async function initializeQdrant() {
+  try {
+    console.log(`Initializing QDrant collection: ${COLLECTION_NAME}`);
+
+    // Check if collection exists
+    const collections = await qdrantClient.getCollections();
+    const collectionExists = collections.collections.some(c => c.name === COLLECTION_NAME);
+
+    if (collectionExists) {
+      console.log(`Collection ${COLLECTION_NAME} already exists`);
+      return true;
+    }
+
+    // Create collection with specified vector size
+    await qdrantClient.createCollection(COLLECTION_NAME, {
+      vectors: {
+        size: VECTOR_SIZE,
+        distance: "Cosine"
+      }
+    });
+
+    console.log(`Created QDrant collection: ${COLLECTION_NAME}`);
+    return true;
+  } catch (error) {
+    console.error('Error initializing QDrant:', error);
+    return false;
+  }
+}
+
+/**
+ * Generate embedding for text using a simple hashing technique
+ * This is a placeholder for a real ML-based embedding function
+ * @param {object} data - Data to generate embedding for
+ * @returns {Promise<number[]>} - Vector embedding
+ */
+async function generateEmbedding(data) {
+  // This is a placeholder function - in a real application, you would use
+  // a proper embedding model like OpenAI's text-embedding API or a local model
+  try {
+    const text = data.question || data.message || '';
+    if (!text) {
+      throw new Error('No text provided for embedding');
+    }
+
+    // Create a simple deterministic vector from the text
+    // NOT FOR PRODUCTION - just a demo implementation
+    const vector = new Array(VECTOR_SIZE).fill(0);
+
+    for (let i = 0; i < text.length; i++) {
+      const charCode = text.charCodeAt(i);
+      const index = i % VECTOR_SIZE;
+      vector[index] = (vector[index] + (charCode / 255)) % 1; // Normalize to 0-1
+    }
+
+    // Normalize vector to unit length
+    const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
+    const normalizedVector = vector.map(val => val / (magnitude || 1));
+
+    return normalizedVector;
+  } catch (error) {
+    console.error('Error generating embedding:', error);
+    // Return a random vector as fallback
+    return Array.from({length: VECTOR_SIZE}, () => Math.random());
+  }
+}

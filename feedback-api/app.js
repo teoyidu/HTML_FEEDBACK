@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 require('dotenv').config();
 
 // Import QDrant Service (if available, otherwise handle gracefully)
-/*let qdrantService;
+let qdrantService;
 try {
     qdrantService = require('./qdrant-service');
     console.log('QDrant service loaded successfully');
@@ -14,21 +14,18 @@ try {
     console.warn('QDrant service not available:', error.message);
     qdrantService = {
         initializeQdrant: async () => false,
-        handleFeedbackChange: async () => false,
-        updateConversationInQdrant: async () => false
+        searchSimilarConversations: async () => [],
+        saveConversationToQdrant: async () => false,
+        getAllQdrantData: async () => []
     };
 }
-*/
 
-// Disable QDrant service temporarily
-let qdrantService = {
-    initializeQdrant: async () => false,
-    handleFeedbackChange: async () => false,
-    updateConversationInQdrant: async () => false,
-    searchSimilarConversations: async () => []
-};
-console.log('QDrant service disabled temporarily');
+// Override functions for auto-saving (keeping these disabled as requested)
+const originalQdrantService = {...qdrantService};
+qdrantService.handleFeedbackChange = async () => false;
+qdrantService.updateConversationInQdrant = async () => false;
 
+// Make sure the next lines of your app.js include:
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -718,6 +715,89 @@ app.get('/api/qdrant/data', async (req, res) => {
         });
     }
 });
+
+// Endpoint to save data directly to QDrant
+app.post('/api/qdrant/save', async (req, res) => {
+    try {
+        if (!db) await connectToMongo();
+
+        const data = req.body;
+
+        // Validate required fields
+        if (!data.message) {
+            return res.status(400).json({
+                success: false,
+                error: 'Message is required'
+            });
+        }
+
+        // Generate a unique ID if not provided
+        const id = data.id || `manual-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
+        // Prepare conversation data
+        const conversationData = {
+            id: id,
+            question: data.message,
+            schema: data.schema || '',
+            timestamp: data.timestamp || Date.now(),
+            type: 'manual_entry',
+            userName: data.userName || 'Manual Entry',
+            cypher_query: data.cypher || '',
+            sql_query: data.cypher || '',
+            conversation: [
+                { role: 'user', message: data.message }
+            ]
+        };
+
+        // Use QDrant service to save
+        if (qdrantService && typeof qdrantService.saveConversationToQdrant === 'function') {
+            const success = await qdrantService.saveConversationToQdrant(conversationData);
+
+            if (success) {
+                return res.json({
+                    success: true,
+                    message: 'Data saved to QDrant',
+                    id: id
+                });
+            } else {
+                throw new Error('Failed to save to QDrant');
+            }
+        } else {
+            throw new Error('QDrant service not available');
+        }
+    } catch (error) {
+        console.error('Error saving to QDrant:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message || 'Internal server error'
+        });
+    }
+});
+
+// Log all registered routes
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+});
+
+// Add this just before the app.listen line to print all routes during startup
+console.log('\n--- REGISTERED API ROUTES ---');
+const printRoutes = (stack, basePath = '') => {
+    stack.forEach(middleware => {
+        if (middleware.route) {
+            const methods = Object.keys(middleware.route.methods)
+                .filter(method => middleware.route.methods[method])
+                .join(', ').toUpperCase();
+            console.log(`${methods} ${basePath}${middleware.route.path}`);
+        } else if (middleware.name === 'router' && middleware.handle.stack) {
+            const path = middleware.regexp.source.replace('^\\/','').replace('(?=\\/|$)', '').replace(/\\\//g, '/');
+            printRoutes(middleware.handle.stack, `${basePath}/${path}`);
+        }
+    });
+};
+
+printRoutes(app._router.stack);
+console.log('-------------------------\n');
 
 // Start server
 connectToMongo().then(() => {

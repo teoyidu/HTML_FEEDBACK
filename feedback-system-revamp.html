@@ -1091,7 +1091,7 @@
     /* Hide user info in modal */
     #modal-user-info {
       display: none;
-    } 
+    }
 
     /* Animations and keyframes */
     @keyframes fadeIn {
@@ -1625,7 +1625,7 @@
         queryParams.append('schema', schemaFilter.value);
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/qdrant/data?${queryParams.toString()}`);
+      const response = await fetch(`${API_BASE_URL}/qdrant/data?${queryParams.toString()}`);
 
       if (!response.ok) {
         throw new Error(`API responded with status: ${response.status}`);
@@ -3731,16 +3731,63 @@
     const sendToQdrantBtn = document.getElementById('send-to-qdrant');
 
     if (sendToQdrantBtn) {
-      sendToQdrantBtn.addEventListener('click', function() {
-        // For demo purposes - just clear the form and show an alert
+      sendToQdrantBtn.addEventListener('click', async function() {
         const questionTextarea = document.getElementById('qdrant-question');
         const cypherTextarea = document.getElementById('qdrant-cypher');
 
-        alert('Data sent to QDrant (Demo)');
+        // Validate input
+        if (!questionTextarea.value.trim()) {
+          alert('Please enter a question');
+          return;
+        }
 
-        // Clear the form
-        questionTextarea.value = '';
-        cypherTextarea.value = '';
+        // Disable button while processing
+        sendToQdrantBtn.disabled = true;
+        sendToQdrantBtn.textContent = 'Sending...';
+
+        try {
+          // Prepare the data
+          const data = {
+            message: questionTextarea.value.trim(),
+            cypher: cypherTextarea.value.trim(),
+            schema: document.getElementById('qdrant-schema-filter')?.value || '',
+            timestamp: Date.now()
+          };
+
+          // Send to backend
+          const response = await fetch(`${API_BASE_URL}/qdrant/save`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            alert('Successfully saved to QDrant!');
+
+            // Clear the form
+            questionTextarea.value = '';
+            cypherTextarea.value = '';
+
+            // Refresh QDrant data if in QDrant view mode
+            if (isQdrantMode) {
+              await fetchQdrantData();
+              renderQdrantItems();
+            }
+          } else {
+            throw new Error(result.error || 'Unknown error occurred');
+          }
+        } catch (error) {
+          console.error('Error saving to QDrant:', error);
+          alert(`Failed to save to QDrant: ${error.message}`);
+        } finally {
+          // Re-enable button
+          sendToQdrantBtn.disabled = false;
+          sendToQdrantBtn.textContent = 'Send to QDrant';
+        }
       });
     }
   });
@@ -3753,7 +3800,7 @@
 <script src="continuous-loading-fix.js"></script>
 <script src="feedback-system-fixes.js"></script>
 <script src="feedback-system-fixes-2.js"></script>
-<script src="pagination-fix.js"></script>
+<!--<script src="pagination-fix.js"></script>-->
 <script src="similarity-fix.js"></script>
 <script src="debug-mode.js"></script>
 <script src="complete-filter-fix.js"></script>
