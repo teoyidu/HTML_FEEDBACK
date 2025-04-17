@@ -170,7 +170,26 @@
 
         // 3. Fix schema filters
         const schemaFilterButtons = document.querySelectorAll('#schema-filters .filter-btn');
+        
+        // Fix filter buttons container layout if needed
+        const schemaFiltersContainer = document.getElementById('schema-filters');
+        if (schemaFiltersContainer) {
+            schemaFiltersContainer.style.display = 'flex';
+            schemaFiltersContainer.style.flexWrap = 'wrap';
+            schemaFiltersContainer.style.gap = '0.75rem';
+            schemaFiltersContainer.style.marginBottom = '1rem';
+            schemaFiltersContainer.style.justifyContent = 'flex-start';
+            schemaFiltersContainer.style.alignItems = 'center';
+        }
+        
         schemaFilterButtons.forEach(button => {
+            // Improve button styling
+            button.style.display = 'inline-flex';
+            button.style.alignItems = 'center';
+            button.style.justifyContent = 'center';
+            button.style.minWidth = '90px';
+            button.style.textAlign = 'center';
+            
             // Remove existing event listeners (to avoid duplicates)
             const newButton = button.cloneNode(true);
             button.parentNode.replaceChild(newButton, button);
