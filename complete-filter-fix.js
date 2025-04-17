@@ -3,6 +3,42 @@
 
 (function() {
     console.log("Loading comprehensive filter fix...");
+    
+    // Fix for Unix timestamps in seconds format
+    window.fixUnixTimestamp = function(timestamp) {
+        // Handle null, undefined, or non-numeric values
+        if (!timestamp || isNaN(Number(timestamp))) {
+            return Date.now();
+        }
+        
+        // Convert string to number if needed
+        if (typeof timestamp === 'string') {
+            timestamp = Number(timestamp);
+        }
+        
+        // Check if this is a Unix timestamp in seconds
+        // Unix timestamps from 2023-2030 in seconds format are roughly 1700000000-1900000000
+        // In milliseconds, they would be 1700000000000-1900000000000
+        if (timestamp > 1000000000 && timestamp < 2000000000) {
+            console.log(`Converting Unix timestamp from seconds to ms: ${timestamp} × 1000 = ${timestamp * 1000}`);
+            return timestamp * 1000;
+        }
+        
+        return timestamp;
+    };
+    
+    // Immediately fix any existing date formatting functions
+    if (typeof window.formatDateTime === 'function') {
+        const originalFormatDateTime = window.formatDateTime;
+        window.formatDateTime = function(dateStr) {
+            // If it's a number-like value, it might be a timestamp
+            if (!isNaN(dateStr)) {
+                dateStr = window.fixUnixTimestamp(dateStr);
+            }
+            return originalFormatDateTime(dateStr);
+        };
+        console.log("✅ Patched formatDateTime function to handle Unix timestamps");
+    }
 
     // Wait for document to be fully loaded
     document.addEventListener('DOMContentLoaded', function() {
@@ -13,6 +49,36 @@
     });
 
     function fixFiltersAndButtons() {
+        // Apply timestamp fixes to existing data
+        if (window.data && Array.isArray(window.data)) {
+            console.log("Fixing timestamps in existing data...");
+            window.data = window.data.map(item => {
+                if (item.timestamp) {
+                    const originalTimestamp = item.timestamp;
+                    item.timestamp = window.fixUnixTimestamp(item.timestamp);
+                    
+                    // Only log if a conversion actually happened
+                    if (item.timestamp !== originalTimestamp) {
+                        // Update datetime field with the corrected date
+                        const fixedDate = new Date(item.timestamp);
+                        item.datetime = fixedDate.toLocaleDateString() + ' ' + fixedDate.toLocaleTimeString();
+                        console.log(`Fixed timestamp for item ${item.id}: ${originalTimestamp} -> ${item.timestamp}`);
+                    }
+                }
+                return item;
+            });
+            
+            // Also fix filteredData if it exists
+            if (window.filteredData && Array.isArray(window.filteredData)) {
+                window.filteredData = window.filteredData.map(item => {
+                    if (item.timestamp) {
+                        item.timestamp = window.fixUnixTimestamp(item.timestamp);
+                    }
+                    return item;
+                });
+            }
+        }
+    
         // 1. Fix global variables that might be getting reset
         // Store original values for safekeeping
         const preservedState = {
@@ -422,6 +488,59 @@
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     `;
 
+        // 8. Override or patch the renderItems function to ensure timestamps are fixed
+        if (typeof window.renderItems === 'function') {
+            const originalRenderItems = window.renderItems;
+            window.renderItems = function() {
+                // Fix timestamps in all data before rendering
+                if (window.filteredData && Array.isArray(window.filteredData)) {
+                    window.filteredData.forEach(item => {
+                        if (item.timestamp) {
+                            const originalTimestamp = item.timestamp;
+                            item.timestamp = window.fixUnixTimestamp(item.timestamp);
+                            
+                            // Update datetime field with the corrected date
+                            if (item.timestamp !== originalTimestamp) {
+                                const fixedDate = new Date(item.timestamp);
+                                item.datetime = fixedDate.toLocaleDateString() + ' ' + fixedDate.toLocaleTimeString();
+                            }
+                        }
+                    });
+                }
+                
+                // Call the original function
+                return originalRenderItems.apply(this, arguments);
+            };
+            console.log("✅ Enhanced renderItems to fix timestamps before rendering");
+        }
+        
+        // 9. Patch data loading
+        if (typeof window.connectToMongoDB === 'function') {
+            const originalConnectToMongoDB = window.connectToMongoDB;
+            window.connectToMongoDB = async function() {
+                // Call original function
+                await originalConnectToMongoDB.apply(this, arguments);
+                
+                // Fix timestamps in the loaded data
+                console.log("Fixing timestamps in newly loaded data...");
+                if (window.data && Array.isArray(window.data)) {
+                    window.data.forEach(item => {
+                        if (item.timestamp) {
+                            const originalTimestamp = item.timestamp;
+                            item.timestamp = window.fixUnixTimestamp(item.timestamp);
+                            
+                            // Update datetime field
+                            if (item.timestamp !== originalTimestamp) {
+                                const fixedDate = new Date(item.timestamp);
+                                item.datetime = fixedDate.toLocaleDateString() + ' ' + fixedDate.toLocaleTimeString();
+                            }
+                        }
+                    });
+                }
+            };
+            console.log("✅ Enhanced connectToMongoDB to fix timestamps after loading data");
+        }
+        
         resetButton.addEventListener('click', function() {
             console.log("Emergency reset triggered");
 

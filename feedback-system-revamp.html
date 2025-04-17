@@ -2610,6 +2610,15 @@
           } else {
             timestamp = Date.now();
           }
+          
+          // Fix for Unix timestamps in seconds format
+          if (timestamp > 1000000000 && timestamp < 2000000000) {
+            console.log(`Converting Unix timestamp from seconds to ms: ${timestamp} → ${timestamp * 1000}`);
+            timestamp = timestamp * 1000;
+          }
+          
+          // Fix timestamp if it's in seconds instead of milliseconds
+          timestamp = fixTimestamp(timestamp);
 
           const date = new Date(timestamp);
           const formattedDate = isNaN(date.getTime()) ? 'Invalid date' :
@@ -2781,6 +2790,19 @@
 
   async function connectToMongoDB(page = 0) {
     try {
+      // Fix for Unix timestamps in seconds format
+      if (!isNaN(dateStr)) {
+        // Convert to number if it's a string
+        const timestamp = Number(dateStr);
+        
+        // Unix timestamps from 2023-2030 in seconds format are roughly between 1700000000-1900000000
+        // In milliseconds, they would be 1700000000000-1900000000000
+        if (timestamp > 1000000000 && timestamp < 2000000000) {
+          console.log(`Converting Unix timestamp from seconds to ms: ${timestamp} → ${timestamp * 1000}`);
+          dateStr = timestamp * 1000;
+        }
+      }
+      
       connectionIndicator.classList.remove('connected');
       connectionIndicator.classList.remove('disconnected');
       connectionText.textContent = `Connecting to MongoDB (page ${page + 1})...`;
@@ -4174,5 +4196,6 @@
 <script src="similarity-fix.js"></script>
 <script src="debug-mode.js"></script>
 <script src="complete-filter-fix.js"></script>
+<script src="unix-timestamp-fix.js"></script>
 </body>
 </html>
