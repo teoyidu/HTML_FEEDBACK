@@ -1,4 +1,4 @@
-// feedback-system-fix-2.js - Add after comprehensive-fix.js
+// comprehensive-fix-2.js
 
 (function() {
     console.log("Restoring missing functionality - feedback-system-fix-2...");
@@ -21,6 +21,7 @@
      * Fix 1: Restore the additional data buttons (Agent History, IDs, etc.)
      */
     function restoreDataButtons() {
+        window.addDataButtonsToItems = addDataButtonsToItems;
         // Store original renderItems function if it exists
         const originalRenderItems = window.renderItems;
 

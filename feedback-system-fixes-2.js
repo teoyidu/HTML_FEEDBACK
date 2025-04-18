@@ -31,6 +31,23 @@ window.filterByType = function(type) {
     applyFilters();
 };
 
+// Add a custom event listener to handle rendering complete events
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('renderingComplete', function(e) {
+        console.log("Rendering complete event caught by feedback-system-fixes-2.js");
+
+        // Call addDataButtonsToItems if it exists
+        if (typeof window.addDataButtonsToItems === 'function') {
+            console.log("Adding data buttons after rendering event");
+            window.addDataButtonsToItems();
+        } else {
+            console.warn("addDataButtonsToItems function not available after rendering event");
+        }
+    });
+
+    console.log("Event listener for renderingComplete registered in feedback-system-fixes-2.js");
+});
+
 // Make sure the type button event listeners are properly set up
 function setupTypeFilters() {
     // Find all type filter buttons

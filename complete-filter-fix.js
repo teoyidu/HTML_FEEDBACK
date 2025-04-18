@@ -1,4 +1,5 @@
 // ===== COMPREHENSIVE FIX FOR FEEDBACK SYSTEM =====
+//complete-filter-fix.js
 // Add this code to a new file called "complete-filter-fix.js" and include it last in your HTML.
 
 (function() {
@@ -610,8 +611,13 @@
     function fixRenderingLimits() {
         console.log("Fixing rendering limits for special buttons...");
 
-        // 1. First patch the renderItems function to respect pageSize fully
+        // Store the original renderItems function, which might be
+        // the enhanced version from feedback-system-fixes-2.js
         const originalRenderItems = window.renderItems;
+
+        // Check if we have the addDataButtonsToItems function globally available
+        const hasDataButtonsFunction = typeof window.addDataButtonsToItems === 'function';
+        console.log("Data buttons function available:", hasDataButtonsFunction);
 
         if (typeof originalRenderItems === 'function') {
             console.log("Patching renderItems function to respect pageSize fully");
@@ -629,9 +635,6 @@
                 }
 
                 // Important: Don't limit the number of items to display here
-                // Original code:
-                // resultsCount.textContent = `Showing ${Math.min(pageSize, filteredData.length)} of ${filteredData.length} results`;
-                // Updated:
                 const displayCount = window.pageSize === 'all' ? window.filteredData.length : Math.min(window.pageSize, window.filteredData.length);
                 resultsCount.textContent = `Showing ${displayCount} of ${window.filteredData.length} results`;
 
@@ -650,24 +653,84 @@
 
                     console.log(`Rendering ${itemsToRender.length} items out of ${window.filteredData.length} filtered items`);
 
-                    // Render items
-                    itemsToRender.forEach((item, index) => {
-                        // ... (existing rendering code)
-                        // Call the original function to handle the actual rendering
-                        if (typeof originalRenderItems === 'function') {
-                            try {
-                                originalRenderItems.apply(this, arguments);
-                            } catch (error) {
-                                console.error("Error in original renderItems:", error);
-                                // If the original function fails, we'll attempt a basic fallback rendering
-                                renderBasicItems();
-                            }
-                        } else {
-                            renderBasicItems();
-                        }
-                    });
+                    try {
+                        // Call the original renderItems function
+                        originalRenderItems.apply(this, arguments);
+
+                        // Ensure we call the addDataButtonsToItems function, with retries if needed
+                        ensureDataButtonsAdded();
+
+                    } catch (error) {
+                        console.error("Error in renderItems:", error);
+                        renderBasicItems();
+
+                        // Still try to add data buttons even with fallback rendering
+                        ensureDataButtonsAdded();
+                    }
                 }
             };
+
+            // Function to ensure data buttons are added, with retries
+            function ensureDataButtonsAdded() {
+                // First try immediately
+                if (typeof window.addDataButtonsToItems === 'function') {
+                    console.log("Calling addDataButtonsToItems immediately");
+                    window.addDataButtonsToItems();
+                } else {
+                    // If the function isn't available yet, try again after a short delay
+                    console.log("Data buttons function not immediately available, will retry");
+                    setTimeout(function() {
+                        if (typeof window.addDataButtonsToItems === 'function') {
+                            console.log("Calling addDataButtonsToItems after delay");
+                            window.addDataButtonsToItems();
+                        } else {
+                            console.warn("Data buttons function still not found after delay");
+
+                            // Last resort: Look for items without buttons and dispatch a custom event
+                            const itemsWithoutButtons = document.querySelectorAll('.feedback-item:not(:has(.additional-data-buttons))');
+                            console.log(`Found ${itemsWithoutButtons.length} items without data buttons`);
+
+                            // Try one more approach - manually check for the function in feedback-system-fixes-2.js
+                            tryToFindAndRestoreDataButtons();
+                        }
+                    }, 200);
+                }
+            }
+
+            // Last resort function to try to find and restore data buttons
+            function tryToFindAndRestoreDataButtons() {
+                // Get all script elements
+                const scripts = document.querySelectorAll('script');
+                let feedbackFixes2Found = false;
+
+                // Look for the feedback-system-fixes-2.js script
+                scripts.forEach(script => {
+                    if (script.src && script.src.includes('feedback-system-fixes-2.js')) {
+                        feedbackFixes2Found = true;
+                        console.log("Found feedback-system-fixes-2.js script, trying to initialize it");
+
+                        // Try to manually call its initialization
+                        try {
+                            // This might re-expose the required functions
+                            if (typeof initialize === 'function') {
+                                initialize();
+                            }
+
+                            // Check again for the data buttons function
+                            if (typeof window.addDataButtonsToItems === 'function') {
+                                console.log("Successfully restored addDataButtonsToItems function");
+                                window.addDataButtonsToItems();
+                            }
+                        } catch (error) {
+                            console.error("Failed to manually initialize feedback fixes:", error);
+                        }
+                    }
+                });
+
+                if (!feedbackFixes2Found) {
+                    console.warn("feedback-system-fixes-2.js script not found");
+                }
+            }
 
             // Basic fallback rendering function
             function renderBasicItems() {
@@ -687,21 +750,22 @@
                     itemElement.dataset.id = item.id;
 
                     itemElement.innerHTML = `
-                        <div class="feedback-content">
-                            <div class="feedback-user-info">
-                                <span class="user-name">User: ${item.user || 'Unknown'}</span>
-                                <span class="datetime">${item.datetime || 'No date'}</span>
-                            </div>
-                            <div class="feedback-buttons">
-                                <button class="conversation-btn">${item.question || 'No question'}</button>
-                            </div>
+                    <div class="feedback-content">
+                        <div class="feedback-user-info">
+                            <span class="user-name">User: ${item.user || 'Unknown'}</span>
+                            <span class="datetime">${item.datetime || 'No date'}</span>
                         </div>
-                    `;
+                        <div class="feedback-buttons">
+                            <button class="conversation-btn">${item.question || 'No question'}</button>
+                        </div>
+                    </div>
+                `;
 
                     feedbackItems.appendChild(itemElement);
                 });
             }
         }
+
 
         // 2. Fix the "List All" button if it exists
         const listAllButton = document.querySelector('.page-size-btn[data-size="all"]');
