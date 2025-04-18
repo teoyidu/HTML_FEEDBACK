@@ -1268,6 +1268,34 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    
+    /* Disabled controls styling */
+    .sort-controls.disabled,
+    .date-range-filter.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    
+    .sort-controls.disabled span,
+    .date-range-filter.disabled span,
+    .date-range-filter.disabled label {
+      color: #6b7280;
+    }
+    
+    .sort-controls.disabled button,
+    .date-range-filter.disabled button,
+    .date-range-filter.disabled input {
+      cursor: not-allowed;
+      background-color: #374151;
+      color: #6b7280;
+    }
+    
+    /* Override pointer-events for tooltip functionality */
+    .sort-controls.disabled,
+    .date-range-filter.disabled {
+      pointer-events: auto;
+    }
   </style>
 </head>
 <body>
@@ -1481,9 +1509,9 @@
   </div>
 
   <!-- Date Sorting Controls -->
-  <div class="sort-controls">
+  <div class="sort-controls disabled" title="Disabled in the current release">
     <span>Sort by date:</span>
-    <button id="sort-newest" class="sort-btn active">
+    <button id="sort-newest" class="sort-btn active" disabled title="Disabled in the current release">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m3 16 4 4 4-4"/>
         <path d="M7 20V4"/>
@@ -1493,7 +1521,7 @@
       </svg>
       Newest First
     </button>
-    <button id="sort-oldest" class="sort-btn">
+    <button id="sort-oldest" class="sort-btn" disabled title="Disabled in the current release">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m3 8 4-4 4 4"/>
         <path d="M7 4v16"/>
@@ -1505,20 +1533,20 @@
     </button>
   </div>
   <!-- Date Range Filter -->
-  <div class="date-range-filter">
+  <div class="date-range-filter disabled" title="Disabled in the current release">
     <span>Filter by time:</span>
     <div class="date-inputs">
       <div class="date-input-group">
         <label for="date-from">From:</label>
-        <input type="date" id="date-from" class="date-input">
+        <input type="date" id="date-from" class="date-input" disabled title="Disabled in the current release">
       </div>
       <div class="date-input-group">
         <label for="date-to">To:</label>
-        <input type="date" id="date-to" class="date-input">
+        <input type="date" id="date-to" class="date-input" disabled title="Disabled in the current release">
       </div>
     </div>
-    <button id="apply-date-filter" class="filter-btn">Apply</button>
-    <button id="clear-date-filter" class="filter-btn">Clear</button>
+    <button id="apply-date-filter" class="filter-btn" disabled title="Disabled in the current release">Apply</button>
+    <button id="clear-date-filter" class="filter-btn" disabled title="Disabled in the current release">Clear</button>
   </div>
 
   <!-- Tabs Navigation -->
@@ -1758,20 +1786,6 @@
             document.body.appendChild(element);
           }
           break;
-
-        case 'type-filters':
-          element.className = 'filter-section';
-          element.innerHTML = `
-          <div class="filter-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-            </svg>
-            <span>Type Filters:</span>
-          </div>
-          <div class="filter-buttons">
-            <!-- Type filter buttons will be added dynamically -->
-          </div>
-        `;
 
           // Insert after schema filters
           const schemaFilters = document.getElementById('schema-filters');
@@ -4197,7 +4211,9 @@
 <script src="pagination-fix.js"></script>
 <script src="complete-filter-fix.js"></script>
 <script src="unix-timestamp-fix.js"></script>
+<!--<script src="schema-filter-fix.js"></script>-->
+<!--<script src="feedback-filter-fix.js"></script>-->
 <!--Experimental-->
-<script src="force-data-points.js"></script>
+<!--<script src="force-data-points.js"></script>-->
 </body>
 </html>

@@ -17,6 +17,9 @@
         console.log("Missing functionality restored!");
     }
 
+    // Expose initialize function to window object
+    window.initializeComprehensiveFix2 = initialize;
+
     /**
      * Fix 1: Restore the additional data buttons (Agent History, IDs, etc.)
      */
@@ -73,8 +76,21 @@
                 <path d="M21 12c0 5.5-5.9 10-9 10"></path>
                 <path d="M9 22v-6H3"></path>
               </svg>`,
-                        dataField: 'agentHistoryFilteredData',
-                        enabled: dataItem.hasAgentHistoryData || (dataItem.agentHistoryFilteredData && dataItem.agentHistoryFilteredData !== "[]" && dataItem.agentHistoryFilteredData.length > 5)
+                        dataField: 'agents_history',
+                        enabled: true // Always show this button
+                    },
+                    {
+                        type: 'document-id',
+                        label: 'Document ID',
+                        icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>`,
+                        dataField: 'document_id',
+                        enabled: true // Always show this button
                     },
                     {
                         type: 'contract-ids',
@@ -87,7 +103,7 @@
                 <path d="M9 17h6"></path>
               </svg>`,
                         dataField: 'contract_ids',
-                        enabled: dataItem.hasContractIds || (dataItem.contract_ids && dataItem.contract_ids !== "[]" && dataItem.contract_ids.length > 5) || (dataItem.contractIds && dataItem.contractIds !== "[]" && dataItem.contractIds.length > 5)
+                        enabled: true // Always show this button
                     },
                     {
                         type: 'document-ids',
@@ -100,7 +116,7 @@
                 <polyline points="10 9 9 9 8 9"></polyline>
               </svg>`,
                         dataField: 'document_ids',
-                        enabled: dataItem.hasDocumentIds || (dataItem.document_ids && dataItem.document_ids !== "[]" && dataItem.document_ids.length > 5) || (dataItem.documentIds && dataItem.documentIds !== "[]" && dataItem.documentIds.length > 5)
+                        enabled: true // Always show this button
                     },
                     {
                         type: 'entity-suggester',
@@ -109,7 +125,20 @@
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
               </svg>`,
                         dataField: 'entitySuggesterData',
-                        enabled: dataItem.hasEntitySuggesterData || (dataItem.entitySuggesterData && dataItem.entitySuggesterData !== "[]" && dataItem.entitySuggesterData.length > 5)
+                        enabled: true // Always show this button
+                    },
+                    {
+                        type: 'agent-history-filtered',
+                        label: 'Agent History (Filtered)',
+                        icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 8c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5Z"></path>
+                <path d="M3 12c0-5.5 5.9-10 9-10"></path>
+                <path d="M15 2v6h6"></path>
+                <path d="M21 12c0 5.5-5.9 10-9 10"></path>
+                <path d="M9 22v-6H3"></path>
+              </svg>`,
+                        dataField: 'agentHistoryFilteredData',
+                        enabled: true // Always show this button
                     }
                 ];
 
@@ -169,6 +198,15 @@
             const existingPopup = document.getElementById('data-popup');
             if (existingPopup) {
                 existingPopup.remove();
+            }
+
+            // Handle undefined or empty data
+            if (data === undefined || data === null) {
+                data = `No ${title.toLowerCase()} data available`;
+            } else if (data === "" || data === "[]" || data === "{}") {
+                data = `Empty ${title.toLowerCase()} data`;
+            } else if (typeof data === 'object' && Object.keys(data).length === 0) {
+                data = `Empty ${title.toLowerCase()} data object`;
             }
 
             // Create popup container
@@ -1255,4 +1293,23 @@
             return false;
         }
     }
+
+    // Auto-initialize when the document is ready
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        // Document already loaded, initialize immediately
+        console.log("Document already loaded, initializing comprehensive-fix-2 immediately");
+        initialize();
+    } else {
+        // Wait for document to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Document ready, initializing comprehensive-fix-2");
+            initialize();
+        });
+    }
+
+    // Also initialize after a short delay to ensure all dependencies are loaded
+    setTimeout(function() {
+        console.log("Delayed initialization of comprehensive-fix-2");
+        initialize();
+    }, 1000);
 })();

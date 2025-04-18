@@ -4,19 +4,19 @@
 
 (function() {
     console.log("Loading comprehensive filter fix...");
-    
+
     // Fix for Unix timestamps in seconds format
     window.fixUnixTimestamp = function(timestamp) {
         // Handle null, undefined, or non-numeric values
         if (!timestamp || isNaN(Number(timestamp))) {
             return Date.now();
         }
-        
+
         // Convert string to number if needed
         if (typeof timestamp === 'string') {
             timestamp = Number(timestamp);
         }
-        
+
         // Check if this is a Unix timestamp in seconds
         // Unix timestamps from 2023-2030 in seconds format are roughly 1700000000-1900000000
         // In milliseconds, they would be 1700000000000-1900000000000
@@ -24,10 +24,10 @@
             console.log(`Converting Unix timestamp from seconds to ms: ${timestamp} × 1000 = ${timestamp * 1000}`);
             return timestamp * 1000;
         }
-        
+
         return timestamp;
     };
-    
+
     // Immediately fix any existing date formatting functions
     if (typeof window.formatDateTime === 'function') {
         const originalFormatDateTime = window.formatDateTime;
@@ -57,7 +57,7 @@
                 if (item.timestamp) {
                     const originalTimestamp = item.timestamp;
                     item.timestamp = window.fixUnixTimestamp(item.timestamp);
-                    
+
                     // Only log if a conversion actually happened
                     if (item.timestamp !== originalTimestamp) {
                         // Update datetime field with the corrected date
@@ -68,7 +68,7 @@
                 }
                 return item;
             });
-            
+
             // Also fix filteredData if it exists
             if (window.filteredData && Array.isArray(window.filteredData)) {
                 window.filteredData = window.filteredData.map(item => {
@@ -79,7 +79,7 @@
                 });
             }
         }
-    
+
         // 1. Fix global variables that might be getting reset
         // Store original values for safekeeping
         const preservedState = {
@@ -171,7 +171,7 @@
 
         // 3. Fix schema filters
         const schemaFilterButtons = document.querySelectorAll('#schema-filters .filter-btn');
-        
+
         // Fix filter buttons container layout if needed
         const schemaFiltersContainer = document.getElementById('schema-filters');
         if (schemaFiltersContainer) {
@@ -182,7 +182,7 @@
             schemaFiltersContainer.style.justifyContent = 'flex-start';
             schemaFiltersContainer.style.alignItems = 'center';
         }
-        
+
         schemaFilterButtons.forEach(button => {
             // Improve button styling
             button.style.display = 'inline-flex';
@@ -190,7 +190,7 @@
             button.style.justifyContent = 'center';
             button.style.minWidth = '90px';
             button.style.textAlign = 'center';
-            
+
             // Remove existing event listeners (to avoid duplicates)
             const newButton = button.cloneNode(true);
             button.parentNode.replaceChild(newButton, button);
@@ -518,7 +518,7 @@
                         if (item.timestamp) {
                             const originalTimestamp = item.timestamp;
                             item.timestamp = window.fixUnixTimestamp(item.timestamp);
-                            
+
                             // Update datetime field with the corrected date
                             if (item.timestamp !== originalTimestamp) {
                                 const fixedDate = new Date(item.timestamp);
@@ -527,20 +527,20 @@
                         }
                     });
                 }
-                
+
                 // Call the original function
                 return originalRenderItems.apply(this, arguments);
             };
             console.log("✅ Enhanced renderItems to fix timestamps before rendering");
         }
-        
+
         // 9. Patch data loading
         if (typeof window.connectToMongoDB === 'function') {
             const originalConnectToMongoDB = window.connectToMongoDB;
             window.connectToMongoDB = async function() {
                 // Call original function
                 await originalConnectToMongoDB.apply(this, arguments);
-                
+
                 // Fix timestamps in the loaded data
                 console.log("Fixing timestamps in newly loaded data...");
                 if (window.data && Array.isArray(window.data)) {
@@ -548,7 +548,7 @@
                         if (item.timestamp) {
                             const originalTimestamp = item.timestamp;
                             item.timestamp = window.fixUnixTimestamp(item.timestamp);
-                            
+
                             // Update datetime field
                             if (item.timestamp !== originalTimestamp) {
                                 const fixedDate = new Date(item.timestamp);
@@ -560,7 +560,7 @@
             };
             console.log("✅ Enhanced connectToMongoDB to fix timestamps after loading data");
         }
-        
+
         resetButton.addEventListener('click', function() {
             console.log("Emergency reset triggered");
 
@@ -608,19 +608,16 @@
         fixRenderingLimits();
     }, 2500); // Apply after other fixes
 
+// Updated fixRenderingLimits function for complete-filter-fix.js
     function fixRenderingLimits() {
         console.log("Fixing rendering limits for special buttons...");
 
-        // Store the original renderItems function, which might be
-        // the enhanced version from feedback-system-fixes-2.js
-        const originalRenderItems = window.renderItems;
+        // Save ALL functionality from the current renderItems
+        // This includes any enhancements from feedback-system-fixes-2.js
+        const enhancedRenderItems = window.renderItems;
 
-        // Check if we have the addDataButtonsToItems function globally available
-        const hasDataButtonsFunction = typeof window.addDataButtonsToItems === 'function';
-        console.log("Data buttons function available:", hasDataButtonsFunction);
-
-        if (typeof originalRenderItems === 'function') {
-            console.log("Patching renderItems function to respect pageSize fully");
+        if (typeof enhancedRenderItems === 'function') {
+            console.log("Patching renderItems function to respect pageSize while preserving data buttons");
 
             window.renderItems = function() {
                 console.log(`Rendering items with pageSize: ${window.pageSize}`);
@@ -654,18 +651,51 @@
                     console.log(`Rendering ${itemsToRender.length} items out of ${window.filteredData.length} filtered items`);
 
                     try {
-                        // Call the original renderItems function
-                        originalRenderItems.apply(this, arguments);
+                        // CRITICAL: Call the ENHANCED renderer rather than trying to add our own logic
+                        // This preserves ALL functionality from feedback-system-fixes-2.js
+                        // Make sure we're using the filtered items
+                        window.filteredData = itemsToRender;
 
-                        // Ensure we call the addDataButtonsToItems function, with retries if needed
+                        // Store the result of the enhanced renderer
+                        const renderResult = enhancedRenderItems.apply(this, arguments);
+
+                        // Ensure data buttons are added after rendering
                         ensureDataButtonsAdded();
 
+                        // Directly call addDataButtonsToItems if it exists
+                        if (typeof window.addDataButtonsToItems === 'function') {
+                            console.log("Directly calling addDataButtonsToItems after rendering");
+                            window.addDataButtonsToItems();
+                        }
+
+                        // Also try to directly call the function from comprehensive-fix-2.js
+                        if (typeof window.initializeComprehensiveFix2 === 'function') {
+                            console.log("Calling initializeComprehensiveFix2 from renderItems");
+                            window.initializeComprehensiveFix2();
+                        }
+
+                        // Dispatch a renderingComplete event to trigger any listeners
+                        console.log("Dispatching renderingComplete event");
+                        const renderingCompleteEvent = new CustomEvent('renderingComplete', {
+                            detail: { source: 'complete-filter-fix.js', renderer: 'enhanced' }
+                        });
+                        document.dispatchEvent(renderingCompleteEvent);
+
+                        // Return the result from the enhanced renderer
+                        return renderResult;
                     } catch (error) {
-                        console.error("Error in renderItems:", error);
+                        console.error("Error in enhanced renderItems:", error);
                         renderBasicItems();
 
-                        // Still try to add data buttons even with fallback rendering
-                        ensureDataButtonsAdded();
+                        // If the enhanced renderer fails, try to manually add data buttons
+                        if (typeof window.addDataButtonsToItems === 'function') {
+                            try {
+                                console.log("Calling addDataButtonsToItems as fallback");
+                                window.addDataButtonsToItems();
+                            } catch (buttonError) {
+                                console.error("Error adding data buttons as fallback:", buttonError);
+                            }
+                        }
                     }
                 }
             };
@@ -686,6 +716,19 @@
                         } else {
                             console.warn("Data buttons function still not found after delay");
 
+                            // Try to initialize comprehensive-fix-2.js
+                            if (typeof window.initializeComprehensiveFix2 === 'function') {
+                                console.log("Calling initializeComprehensiveFix2 from ensureDataButtonsAdded");
+                                window.initializeComprehensiveFix2();
+
+                                // Check if addDataButtonsToItems is now available
+                                if (typeof window.addDataButtonsToItems === 'function') {
+                                    console.log("addDataButtonsToItems is now available after initialization");
+                                    window.addDataButtonsToItems();
+                                    return;
+                                }
+                            }
+
                             // Last resort: Look for items without buttons and dispatch a custom event
                             const itemsWithoutButtons = document.querySelectorAll('.feedback-item:not(:has(.additional-data-buttons))');
                             console.log(`Found ${itemsWithoutButtons.length} items without data buttons`);
@@ -699,37 +742,98 @@
 
             // Last resort function to try to find and restore data buttons
             function tryToFindAndRestoreDataButtons() {
+                console.log("Attempting to find and restore data buttons functionality");
+
+                // First, try to directly call initializeComprehensiveFix2 if it exists
+                if (typeof window.initializeComprehensiveFix2 === 'function') {
+                    console.log("Found initializeComprehensiveFix2 function, calling it");
+                    try {
+                        window.initializeComprehensiveFix2();
+
+                        // Check if addDataButtonsToItems is now available
+                        if (typeof window.addDataButtonsToItems === 'function') {
+                            console.log("Successfully restored addDataButtonsToItems function");
+                            window.addDataButtonsToItems();
+                            return true;
+                        }
+                    } catch (error) {
+                        console.error("Error calling initializeComprehensiveFix2:", error);
+                    }
+                }
+
                 // Get all script elements
                 const scripts = document.querySelectorAll('script');
+                let comprehensiveFix2Found = false;
                 let feedbackFixes2Found = false;
 
-                // Look for the feedback-system-fixes-2.js script
+                // First look for comprehensive-fix-2.js as it contains the data buttons functionality
                 scripts.forEach(script => {
-                    if (script.src && script.src.includes('feedback-system-fixes-2.js')) {
-                        feedbackFixes2Found = true;
-                        console.log("Found feedback-system-fixes-2.js script, trying to initialize it");
+                    if (script.src && script.src.includes('comprehensive-fix-2.js')) {
+                        comprehensiveFix2Found = true;
+                        console.log("Found comprehensive-fix-2.js script, trying to initialize it");
 
                         // Try to manually call its initialization
                         try {
-                            // This might re-expose the required functions
-                            if (typeof initialize === 'function') {
-                                initialize();
-                            }
+                            // Create a new script element to reload it
+                            const newScript = document.createElement('script');
+                            newScript.src = script.src;
+                            newScript.onload = function() {
+                                console.log("Reloaded comprehensive-fix-2.js");
+                                if (typeof window.initializeComprehensiveFix2 === 'function') {
+                                    console.log("Calling initializeComprehensiveFix2 after reload");
+                                    window.initializeComprehensiveFix2();
 
-                            // Check again for the data buttons function
-                            if (typeof window.addDataButtonsToItems === 'function') {
-                                console.log("Successfully restored addDataButtonsToItems function");
-                                window.addDataButtonsToItems();
-                            }
+                                    // Check if addDataButtonsToItems is now available
+                                    if (typeof window.addDataButtonsToItems === 'function') {
+                                        console.log("Successfully restored addDataButtonsToItems function after reload");
+                                        window.addDataButtonsToItems();
+                                    }
+                                }
+                            };
+                            document.head.appendChild(newScript);
                         } catch (error) {
-                            console.error("Failed to manually initialize feedback fixes:", error);
+                            console.error("Failed to reload comprehensive-fix-2.js:", error);
                         }
                     }
                 });
 
-                if (!feedbackFixes2Found) {
-                    console.warn("feedback-system-fixes-2.js script not found");
+                // If comprehensive-fix-2.js not found, look for feedback-system-fixes-2.js
+                if (!comprehensiveFix2Found) {
+                    scripts.forEach(script => {
+                        if (script.src && script.src.includes('feedback-system-fixes-2.js')) {
+                            feedbackFixes2Found = true;
+                            console.log("Found feedback-system-fixes-2.js script, trying to initialize it");
+
+                            // Try to manually call its initialization
+                            try {
+                                // This might re-expose the required functions
+                                if (typeof window.initializeComprehensiveFix2 === 'function') {
+                                    console.log("Calling initializeComprehensiveFix2 function");
+                                    window.initializeComprehensiveFix2();
+                                } else if (typeof initialize === 'function') {
+                                    console.log("Calling initialize function as fallback");
+                                    initialize();
+                                }
+
+                                // Check again for the data buttons function
+                                if (typeof window.addDataButtonsToItems === 'function') {
+                                    console.log("Successfully restored addDataButtonsToItems function");
+                                    window.addDataButtonsToItems();
+                                    return true;
+                                }
+                            } catch (error) {
+                                console.error("Failed to manually initialize feedback fixes:", error);
+                            }
+                        }
+                    });
                 }
+
+                if (!comprehensiveFix2Found && !feedbackFixes2Found) {
+                    console.warn("Neither comprehensive-fix-2.js nor feedback-system-fixes-2.js script found");
+                    return false;
+                }
+
+                return typeof window.addDataButtonsToItems === 'function';
             }
 
             // Basic fallback rendering function
@@ -763,6 +867,13 @@
 
                     feedbackItems.appendChild(itemElement);
                 });
+
+                // Dispatch a renderingComplete event to trigger any listeners
+                console.log("Dispatching renderingComplete event from renderBasicItems");
+                const renderingCompleteEvent = new CustomEvent('renderingComplete', {
+                    detail: { source: 'complete-filter-fix.js', renderer: 'basic' }
+                });
+                document.dispatchEvent(renderingCompleteEvent);
             }
         }
 
@@ -1336,4 +1447,49 @@
 
         console.log("Pagination refresh fix applied successfully");
     }
+
+    // Initialize comprehensive-fix-2.js after a short delay
+    setTimeout(function() {
+        console.log("Initializing comprehensive-fix-2.js from complete-filter-fix.js");
+        if (typeof window.initializeComprehensiveFix2 === 'function') {
+            window.initializeComprehensiveFix2();
+
+            // Check if addDataButtonsToItems is available and call it
+            if (typeof window.addDataButtonsToItems === 'function') {
+                console.log("Calling addDataButtonsToItems after initialization");
+                window.addDataButtonsToItems();
+            }
+        }
+    }, 500);
+
+    // Add a final safety net - try to add data buttons after a longer delay
+    setTimeout(function() {
+        console.log("Final attempt to add data buttons");
+
+        // Try to initialize comprehensive-fix-2.js again
+        if (typeof window.initializeComprehensiveFix2 === 'function') {
+            window.initializeComprehensiveFix2();
+        }
+
+        // Try to add data buttons
+        if (typeof window.addDataButtonsToItems === 'function') {
+            console.log("Calling addDataButtonsToItems in final attempt");
+            window.addDataButtonsToItems();
+        } else {
+            console.warn("addDataButtonsToItems still not available in final attempt");
+
+            // Last resort: manually add buttons to items without them
+            const itemsWithoutButtons = document.querySelectorAll('.feedback-item:not(:has(.additional-data-buttons))');
+            console.log(`Found ${itemsWithoutButtons.length} items without data buttons in final attempt`);
+
+            if (itemsWithoutButtons.length > 0) {
+                // Dispatch a custom event that might trigger other handlers
+                console.log("Dispatching dataButtonsNeeded event");
+                const event = new CustomEvent('dataButtonsNeeded', {
+                    detail: { items: itemsWithoutButtons }
+                });
+                document.dispatchEvent(event);
+            }
+        }
+    }, 2000);
 })();
