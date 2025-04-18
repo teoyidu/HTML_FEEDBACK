@@ -598,4 +598,678 @@
 
         console.log("Filter and feedback button fixes applied successfully");
     }
+
+    // Add this to the end of complete-filter-fix.js, after the previous fixes
+
+    // ===== Fix for "List All" and Custom Amount Buttons =====
+    setTimeout(function() {
+        console.log("Applying fix for List All and custom amount buttons...");
+        fixRenderingLimits();
+    }, 2500); // Apply after other fixes
+
+    function fixRenderingLimits() {
+        console.log("Fixing rendering limits for special buttons...");
+
+        // 1. First patch the renderItems function to respect pageSize fully
+        const originalRenderItems = window.renderItems;
+
+        if (typeof originalRenderItems === 'function') {
+            console.log("Patching renderItems function to respect pageSize fully");
+
+            window.renderItems = function() {
+                console.log(`Rendering items with pageSize: ${window.pageSize}`);
+
+                const feedbackItems = document.getElementById('feedback-items');
+                const noResults = document.getElementById('no-results');
+                const resultsCount = document.getElementById('results-count');
+
+                if (!feedbackItems || !noResults || !resultsCount) {
+                    console.error("Required DOM elements missing!");
+                    return;
+                }
+
+                // Important: Don't limit the number of items to display here
+                // Original code:
+                // resultsCount.textContent = `Showing ${Math.min(pageSize, filteredData.length)} of ${filteredData.length} results`;
+                // Updated:
+                const displayCount = window.pageSize === 'all' ? window.filteredData.length : Math.min(window.pageSize, window.filteredData.length);
+                resultsCount.textContent = `Showing ${displayCount} of ${window.filteredData.length} results`;
+
+                // Clear previous items
+                feedbackItems.innerHTML = '';
+
+                if (window.filteredData.length === 0) {
+                    noResults.classList.remove('hidden');
+                } else {
+                    noResults.classList.add('hidden');
+
+                    // CRITICAL CHANGE: Don't limit the slice if pageSize is "all"
+                    const itemsToRender = window.pageSize === 'all'
+                        ? window.filteredData
+                        : window.filteredData.slice(0, window.pageSize);
+
+                    console.log(`Rendering ${itemsToRender.length} items out of ${window.filteredData.length} filtered items`);
+
+                    // Render items
+                    itemsToRender.forEach((item, index) => {
+                        // ... (existing rendering code)
+                        // Call the original function to handle the actual rendering
+                        if (typeof originalRenderItems === 'function') {
+                            try {
+                                originalRenderItems.apply(this, arguments);
+                            } catch (error) {
+                                console.error("Error in original renderItems:", error);
+                                // If the original function fails, we'll attempt a basic fallback rendering
+                                renderBasicItems();
+                            }
+                        } else {
+                            renderBasicItems();
+                        }
+                    });
+                }
+            };
+
+            // Basic fallback rendering function
+            function renderBasicItems() {
+                const feedbackItems = document.getElementById('feedback-items');
+                if (!feedbackItems) return;
+
+                feedbackItems.innerHTML = '';
+
+                const itemsToRender = window.pageSize === 'all'
+                    ? window.filteredData
+                    : window.filteredData.slice(0, window.pageSize);
+
+                itemsToRender.forEach(item => {
+                    // Create a simple representation of the item
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'feedback-item';
+                    itemElement.dataset.id = item.id;
+
+                    itemElement.innerHTML = `
+                        <div class="feedback-content">
+                            <div class="feedback-user-info">
+                                <span class="user-name">User: ${item.user || 'Unknown'}</span>
+                                <span class="datetime">${item.datetime || 'No date'}</span>
+                            </div>
+                            <div class="feedback-buttons">
+                                <button class="conversation-btn">${item.question || 'No question'}</button>
+                            </div>
+                        </div>
+                    `;
+
+                    feedbackItems.appendChild(itemElement);
+                });
+            }
+        }
+
+        // 2. Fix the "List All" button if it exists
+        const listAllButton = document.querySelector('.page-size-btn[data-size="all"]');
+        if (listAllButton) {
+            console.log('Fixing "List All" button');
+
+            // Remove existing event listeners
+            const newListAllButton = listAllButton.cloneNode(true);
+            listAllButton.parentNode.replaceChild(newListAllButton, listAllButton);
+
+            // Add enhanced event listener
+            newListAllButton.addEventListener('click', function() {
+                console.log('List All button clicked');
+
+                // Update UI state
+                document.querySelectorAll('.page-size-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                newListAllButton.classList.add('active');
+
+                // Set pageSize to 'all' - this is a special value we'll check for
+                window.pageSize = 'all';
+                console.log('Set pageSize to "all"');
+
+                // Try different approaches to fix rendering
+                try {
+                    // 1. First set to a very large number as a fallback
+                    const largeNumber = 10000;
+                    console.log(`Also setting numeric pageSize to ${largeNumber} as fallback`);
+
+                    // 2. Update currentPage to 0 to ensure we get all records
+                    window.currentPage = 0;
+
+                    // 3. If loadPage exists, reload data
+                    if (typeof window.loadPage === 'function') {
+                        console.log('Calling loadPage to fetch all data');
+                        window.loadPage(0);
+                    } else {
+                        // 4. If applyFilters exists, call it to refilter data with new pageSize
+                        if (typeof window.applyFilters === 'function') {
+                            console.log('Calling applyFilters with new pageSize');
+                            window.applyFilters();
+                        } else {
+                            // 5. Last resort: just call renderItems
+                            if (typeof window.renderItems === 'function') {
+                                console.log('Calling renderItems directly');
+                                window.renderItems();
+                            }
+                        }
+                    }
+
+                    // Show notification
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification('Showing all records', 'info');
+                    }
+                } catch (error) {
+                    console.error('Error in List All button handler:', error);
+                }
+            });
+        }
+
+        // 3. Fix custom amount input if it exists
+        const customAmountInput = document.querySelector('.custom-size-input, .custom-page-size-input');
+        const customAmountButton = document.querySelector('.custom-size-apply, .custom-page-size-apply');
+
+        if (customAmountInput && customAmountButton) {
+            console.log('Fixing custom amount input');
+
+            // Remove existing event listeners
+            const newCustomAmountButton = customAmountButton.cloneNode(true);
+            customAmountButton.parentNode.replaceChild(newCustomAmountButton, customAmountButton);
+
+            // Add enhanced event listener
+            newCustomAmountButton.addEventListener('click', function() {
+                applyCustomAmount();
+            });
+
+            // Also handle Enter key
+            customAmountInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    applyCustomAmount();
+                }
+            });
+
+            function applyCustomAmount() {
+                const value = parseInt(customAmountInput.value, 10);
+
+                if (isNaN(value) || value < 1) {
+                    console.error('Invalid custom amount:', value);
+
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification('Please enter a valid number', 'error');
+                    }
+
+                    return;
+                }
+
+                console.log(`Custom amount entered: ${value}`);
+
+                // Update UI state
+                document.querySelectorAll('.page-size-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+
+                // Update custom input styling
+                customAmountInput.style.borderColor = '#2563eb';
+                newCustomAmountButton.style.backgroundColor = '#1d4ed8';
+
+                // Update pageSize
+                window.pageSize = value;
+                console.log(`Set pageSize to ${value}`);
+
+                // First try loadPage
+                if (typeof window.loadPage === 'function') {
+                    console.log('Calling loadPage with custom amount');
+                    window.loadPage(window.currentPage);
+                } else {
+                    // Then try applyFilters
+                    if (typeof window.applyFilters === 'function') {
+                        console.log('Calling applyFilters with custom amount');
+                        window.applyFilters();
+                    } else {
+                        // Last resort: renderItems
+                        if (typeof window.renderItems === 'function') {
+                            console.log('Calling renderItems with custom amount');
+                            window.renderItems();
+                        }
+                    }
+                }
+
+                // Show notification
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification(`Page size changed to ${value}`, 'info');
+                }
+            }
+        }
+
+        // 4. Add debugging for any hidden limiters
+        console.log('Adding pageSize debug logging');
+
+        // Log whenever pageSize changes
+        let lastPageSize = window.pageSize;
+        setInterval(function() {
+            if (window.pageSize !== lastPageSize) {
+                console.log(`pageSize changed from ${lastPageSize} to ${window.pageSize}`);
+                lastPageSize = window.pageSize;
+            }
+        }, 500);
+
+        console.log('Rendering limits fix applied successfully');
+    }
+
+
+    // Add this to the end of complete-filter-fix.js, after all previous fixes
+
+    // ===== Comprehensive Pagination Refresh Fix =====
+    // This ensures immediate refresh of data and pagination when page size changes
+
+    setTimeout(function() {
+        console.log("Applying comprehensive pagination refresh fix...");
+        fixPaginationRefresh();
+    }, 3000); // Apply after all other fixes
+
+    function fixPaginationRefresh() {
+        console.log("Setting up pagination refresh system...");
+
+        // 1. Create a refresh function that will update everything
+        window.refreshPaginationSystem = async function(newPageSize, resetToFirstPage = true) {
+            console.log(`Refreshing pagination system with pageSize: ${newPageSize}, resetToFirstPage: ${resetToFirstPage}`);
+
+            // Update the global page size
+            window.pageSize = newPageSize;
+
+            // Calculate the current record index to try to maintain position
+            const currentIndex = window.currentPage * (window.pageSize === 'all' ? 1000 : window.pageSize);
+
+            // If we're resetting to first page or using "all", set currentPage to 0
+            if (resetToFirstPage || newPageSize === 'all') {
+                window.currentPage = 0;
+            } else {
+                // Otherwise calculate the new page based on the current record index
+                window.currentPage = Math.floor(currentIndex / newPageSize);
+            }
+
+            console.log(`New page calculation: currentPage = ${window.currentPage}`);
+
+            // Fetch fresh data with new page size
+            try {
+                console.log(`Fetching fresh data for page ${window.currentPage} with size ${newPageSize}`);
+
+                // Construct API URL
+                const apiUrl = `${window.API_BASE_URL || 'http://localhost:3000/api'}/conversations`;
+
+                // Build query parameters
+                const params = new URLSearchParams();
+                params.append('page', window.currentPage);
+
+                // Handle 'all' special case
+                if (newPageSize === 'all') {
+                    params.append('limit', 1000); // Use a large number as proxy for "all"
+                } else {
+                    params.append('limit', newPageSize);
+                }
+
+                // Apply any active filters to the query
+                if (window.activeSchema) {
+                    params.append('schema', window.activeSchema);
+                }
+
+                if (window.activeFeedbackFilter) {
+                    params.append('feedback', window.activeFeedbackFilter);
+                }
+
+                if (window.searchQuery) {
+                    params.append('search', window.searchQuery);
+                }
+
+                // Add date filters if they exist
+                if (window.dateFrom) {
+                    params.append('dateFrom', window.dateFrom);
+                }
+
+                if (window.dateTo) {
+                    params.append('dateTo', window.dateTo);
+                }
+
+                // Add sort order if it exists
+                if (window.sortOrder) {
+                    params.append('sort', window.sortOrder);
+                }
+
+                // Full URL with parameters
+                const fullUrl = `${apiUrl}?${params.toString()}`;
+                console.log(`Fetching from: ${fullUrl}`);
+
+                // Make the request
+                const response = await fetch(fullUrl);
+
+                if (!response.ok) {
+                    throw new Error(`API responded with status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log(`Received data with ${result.data?.length || 0} records`);
+
+                // Process the data
+                if (result.data) {
+                    const mongoData = result.data;
+
+                    // Update pagination info
+                    window.currentPage = result.pagination ? result.pagination.page : 0;
+                    window.totalPages = result.pagination ? result.pagination.totalPages : 1;
+
+                    // Convert data to app format
+                    if (typeof window.convertMongoDataToAppFormat === 'function') {
+                        window.data = window.convertMongoDataToAppFormat(mongoData);
+                    } else {
+                        window.data = mongoData;
+                    }
+
+                    // Update filtered data
+                    window.filteredData = [...window.data.filter(item => window.showHidden || !item.hidden)];
+
+                    console.log(`Data processed: ${window.data.length} items, ${window.filteredData.length} filtered items`);
+
+                    // Rebuild pagination controls
+                    rebuildPaginationControls();
+
+                    // Render the items
+                    if (typeof window.renderItems === 'function') {
+                        console.log("Rendering items with fresh data");
+                        window.renderItems();
+                    }
+
+                    // Show success notification
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification(`Loaded ${window.data.length} records with page size ${newPageSize}`, 'success');
+                    }
+
+                    return true;
+                } else {
+                    throw new Error('Invalid data format from API');
+                }
+            } catch (error) {
+                console.error("Error refreshing pagination:", error);
+
+                // Show error notification
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification(`Error refreshing data: ${error.message}`, 'error');
+                }
+
+                return false;
+            }
+        };
+
+        // 2. Function to rebuild pagination controls
+        function rebuildPaginationControls() {
+            console.log(`Rebuilding pagination controls: ${window.totalPages} pages, current: ${window.currentPage+1}`);
+
+            // Check if we have the required elements
+            const tabsList = document.getElementById('tabs-list');
+            const prevTabBtn = document.getElementById('prev-tab-btn');
+            const nextTabBtn = document.getElementById('next-tab-btn');
+
+            if (!tabsList || !prevTabBtn || !nextTabBtn) {
+                console.error("Pagination controls not found");
+                return;
+            }
+
+            // Clear existing tabs
+            tabsList.innerHTML = '';
+
+            // Special case for "all" - we won't have pagination
+            if (window.pageSize === 'all') {
+                console.log("Page size is 'all', pagination disabled");
+
+                // Create a single "Page 1" button
+                const tab = document.createElement('button');
+                tab.className = 'pagination-btn active';
+                tab.textContent = 'Page 1';
+                tab.dataset.page = 0;
+                tabsList.appendChild(tab);
+
+                // Disable navigation buttons
+                prevTabBtn.disabled = true;
+                nextTabBtn.disabled = true;
+
+                return;
+            }
+
+            // Create tabs for each page
+            for (let i = 0; i < window.totalPages; i++) {
+                const tab = document.createElement('button');
+                tab.className = `pagination-btn${window.currentPage === i ? ' active' : ''}`;
+                tab.textContent = `Page ${i + 1}`;
+                tab.dataset.page = i;
+
+                tab.addEventListener('click', function() {
+                    if (window.currentPage !== i) {
+                        if (typeof window.loadPage === 'function') {
+                            window.loadPage(i);
+                        }
+                    }
+                });
+
+                tabsList.appendChild(tab);
+            }
+
+            // Update tab visibility
+            if (typeof window.updateTabsVisibility === 'function') {
+                window.updateTabsVisibility();
+            }
+
+            // Update navigation buttons
+            prevTabBtn.disabled = window.currentPage === 0;
+            nextTabBtn.disabled = window.currentPage === window.totalPages - 1 || window.totalPages === 0;
+
+            // Reset navigation button event listeners
+            setupNavButtons();
+        }
+
+        // 3. Helper function to set up navigation buttons
+        function setupNavButtons() {
+            const prevTabBtn = document.getElementById('prev-tab-btn');
+            const nextTabBtn = document.getElementById('next-tab-btn');
+
+            if (!prevTabBtn || !nextTabBtn) return;
+
+            // Remove existing event listeners
+            const newPrevBtn = prevTabBtn.cloneNode(true);
+            const newNextBtn = nextTabBtn.cloneNode(true);
+
+            prevTabBtn.parentNode.replaceChild(newPrevBtn, prevTabBtn);
+            nextTabBtn.parentNode.replaceChild(newNextBtn, nextTabBtn);
+
+            // Add new event listeners
+            newPrevBtn.addEventListener('click', function() {
+                if (window.currentPage > 0) {
+                    if (typeof window.loadPage === 'function') {
+                        window.loadPage(window.currentPage - 1);
+                    }
+                }
+            });
+
+            newNextBtn.addEventListener('click', function() {
+                if (window.currentPage < window.totalPages - 1) {
+                    if (typeof window.loadPage === 'function') {
+                        window.loadPage(window.currentPage + 1);
+                    }
+                }
+            });
+        }
+
+        // 4. Fix ALL page size buttons to use the new refresh function
+        const pageSizeButtons = document.querySelectorAll('.page-size-btn');
+
+        pageSizeButtons.forEach(button => {
+            // Get size value from the button
+            let size = button.dataset.size;
+            if (size !== 'all') {
+                size = parseInt(size, 10);
+                if (isNaN(size)) return;
+            }
+
+            // Clone to remove existing listeners
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+
+            // Add enhanced event listener
+            newButton.addEventListener('click', function() {
+                console.log(`Page size button clicked: ${size}`);
+
+                // Update visual active state
+                pageSizeButtons.forEach(btn => btn.classList.remove('active'));
+                newButton.classList.add('active');
+
+                // Use the new refresh function
+                window.refreshPaginationSystem(size, true);
+            });
+        });
+
+        // 5. Fix the custom amount input
+        const customAmountInput = document.querySelector('.custom-size-input, .custom-page-size-input');
+        const customAmountButton = document.querySelector('.custom-size-apply, .custom-page-size-apply');
+
+        if (customAmountInput && customAmountButton) {
+            console.log("Fixing custom amount input with refresh functionality");
+
+            // Remove existing event listeners
+            const newCustomAmountButton = customAmountButton.cloneNode(true);
+            customAmountButton.parentNode.replaceChild(newCustomAmountButton, customAmountButton);
+
+            // Create a custom input handler function
+            function handleCustomAmount() {
+                const value = parseInt(customAmountInput.value, 10);
+
+                if (isNaN(value) || value < 1) {
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification('Please enter a valid number', 'error');
+                    }
+                    return;
+                }
+
+                console.log(`Custom amount entered: ${value}`);
+
+                // Update UI state
+                pageSizeButtons.forEach(btn => btn.classList.remove('active'));
+
+                // Update custom input styling
+                customAmountInput.style.borderColor = '#2563eb';
+                newCustomAmountButton.style.backgroundColor = '#1d4ed8';
+
+                // Use the new refresh function
+                window.refreshPaginationSystem(value, true);
+            }
+
+            // Add event listeners
+            newCustomAmountButton.addEventListener('click', handleCustomAmount);
+
+            customAmountInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    handleCustomAmount();
+                }
+            });
+        }
+
+        // 6. Add a refresh button near the page size controls
+        addRefreshButton();
+
+        function addRefreshButton() {
+            const pageSize = document.querySelector('.page-size');
+            if (!pageSize) return;
+
+            // Check if button already exists
+            if (document.getElementById('refresh-page-button')) return;
+
+            // Create refresh button
+            const refreshButton = document.createElement('button');
+            refreshButton.id = 'refresh-page-button';
+            refreshButton.className = 'refresh-page-button';
+            refreshButton.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.5 2v6h-6"></path>
+                    <path d="M2.5 12a10 10 0 0 1 17-7l2-2"></path>
+                    <path d="M2.5 22v-6h6"></path>
+                    <path d="M21.5 12a10 10 0 0 1-17 7l-2 2"></path>
+                </svg>
+                <span>Refresh</span>
+            `;
+
+            // Add styling
+            refreshButton.style.cssText = `
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+                margin-left: 0.75rem;
+                padding: 0.25rem 0.75rem;
+                background-color: #2563eb;
+                color: white;
+                border: none;
+                border-radius: 0.25rem;
+                cursor: pointer;
+                font-size: 0.875rem;
+                transition: background-color 0.2s;
+            `;
+
+            // Add hover state
+            refreshButton.addEventListener('mouseover', function() {
+                refreshButton.style.backgroundColor = '#1d4ed8';
+            });
+
+            refreshButton.addEventListener('mouseout', function() {
+                refreshButton.style.backgroundColor = '#2563eb';
+            });
+
+            // Add click handler
+            refreshButton.addEventListener('click', function() {
+                console.log("Refresh button clicked");
+
+                // Show spinner in button during refresh
+                const originalText = refreshButton.innerHTML;
+                refreshButton.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="loading-spinner">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 6v6l4 2"></path>
+                    </svg>
+                    <span>Refreshing...</span>
+                `;
+
+                // Add spinning animation to the SVG
+                const spinner = refreshButton.querySelector('.loading-spinner');
+                if (spinner) {
+                    spinner.style.animation = 'spin 1s linear infinite';
+                }
+
+                // Add keyframes for spinning if not already present
+                if (!document.getElementById('spin-keyframes')) {
+                    const style = document.createElement('style');
+                    style.id = 'spin-keyframes';
+                    style.textContent = `
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                // Disable button during refresh
+                refreshButton.disabled = true;
+
+                // Refresh with current page size
+                window.refreshPaginationSystem(window.pageSize, false).then(() => {
+                    // Restore button appearance when done
+                    refreshButton.innerHTML = originalText;
+                    refreshButton.disabled = false;
+                }).catch(() => {
+                    // Also restore on error
+                    refreshButton.innerHTML = originalText;
+                    refreshButton.disabled = false;
+                });
+            });
+
+            // Add to page size container
+            pageSize.appendChild(refreshButton);
+            console.log("Refresh button added");
+        }
+
+        console.log("Pagination refresh fix applied successfully");
+    }
 })();
